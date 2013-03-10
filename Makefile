@@ -13,7 +13,7 @@ ifeq ($(UNAME), Linux)
 endif
 
 SYNTH= synth
-OBJ= synth.o audio.o band.o lib.o mq.o
+OBJ= sine.o synth.o audio.o band.o lib.o mq.o
 
 $(SYNTH): $(OBJ)
 
