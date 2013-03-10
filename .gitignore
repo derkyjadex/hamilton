@@ -1,2 +1,3 @@
-*.o
-synth
+.DS_Store
+xcuserdata
+*.xcworkspace

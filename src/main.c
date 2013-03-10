@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL/SDL.h>
 
 #include "public.h"
 
@@ -20,19 +20,6 @@ static int run_audio(int duration)
 	return 0;
 }
 
-static int run_console()
-{
-	const int LEN = 4000;
-	int16_t buffer[LEN];
-	band_run(buffer, LEN);
-	for (int i = 0; i < LEN; i++) {
-		printf("%hd ", buffer[i]);
-	}
-
-	return 0;
-}
-
-#undef main
 int main(int argc, char *argv[])
 {
 	int error;
