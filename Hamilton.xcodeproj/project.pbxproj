@@ -26,7 +26,7 @@
 		1A65C5EA16ED2F1900C40716 /* mq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mq.h; sourceTree = "<group>"; };
 		1A65C5EB16ED2F1900C40716 /* sine.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sine.c; sourceTree = "<group>"; };
 		1A65C5EC16ED2F1900C40716 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		1A65C5FF16ED2FB000C40716 /* Synth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Synth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A65C5FF16ED2FB000C40716 /* Hamilton.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hamilton.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A65C60116ED2FB000C40716 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1A65C60416ED2FB000C40716 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		1A65C60516ED2FB000C40716 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -97,7 +97,7 @@
 		1A65C5F216ED2F8300C40716 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C5FF16ED2FB000C40716 /* Synth.app */,
+				1A65C5FF16ED2FB000C40716 /* Hamilton.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -143,9 +143,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1A65C5FE16ED2FB000C40716 /* Synth */ = {
+		1A65C5FE16ED2FB000C40716 /* Hamilton */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A65C61916ED2FB000C40716 /* Build configuration list for PBXNativeTarget "Synth" */;
+			buildConfigurationList = 1A65C61916ED2FB000C40716 /* Build configuration list for PBXNativeTarget "Hamilton" */;
 			buildPhases = (
 				1A65C5FB16ED2FB000C40716 /* Sources */,
 				1A65C5FC16ED2FB000C40716 /* Frameworks */,
@@ -155,9 +155,9 @@
 			);
 			dependencies = (
 			);
-			name = Synth;
-			productName = Synth;
-			productReference = 1A65C5FF16ED2FB000C40716 /* Synth.app */;
+			name = Hamilton;
+			productName = Hamilton;
+			productReference = 1A65C5FF16ED2FB000C40716 /* Hamilton.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -168,7 +168,7 @@
 			attributes = {
 				LastUpgradeCheck = 0460;
 			};
-			buildConfigurationList = 1A65C5DF16ED2E8D00C40716 /* Build configuration list for PBXProject "Synth" */;
+			buildConfigurationList = 1A65C5DF16ED2E8D00C40716 /* Build configuration list for PBXProject "Hamilton" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -180,7 +180,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1A65C5FE16ED2FB000C40716 /* Synth */,
+				1A65C5FE16ED2FB000C40716 /* Hamilton */,
 			);
 		};
 /* End PBXProject section */
@@ -299,7 +299,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A65C5DF16ED2E8D00C40716 /* Build configuration list for PBXProject "Synth" */ = {
+		1A65C5DF16ED2E8D00C40716 /* Build configuration list for PBXProject "Hamilton" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A65C5E016ED2E8D00C40716 /* Debug */,
@@ -308,13 +308,14 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A65C61916ED2FB000C40716 /* Build configuration list for PBXNativeTarget "Synth" */ = {
+		1A65C61916ED2FB000C40716 /* Build configuration list for PBXNativeTarget "Hamilton" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A65C61A16ED2FB000C40716 /* Debug */,
 				1A65C61B16ED2FB000C40716 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
