@@ -3,9 +3,6 @@
 int lib_init(void);
 void lib_free(void);
 
-int band_init(void);
-void band_free(void);
-
 extern Synth *synths[NUM_CHANNELS];
 
 typedef enum {

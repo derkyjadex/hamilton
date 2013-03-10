@@ -14,7 +14,7 @@ int lib_init()
 void lib_free()
 { }
 
-int lib_add_synth(const char *name, Synth *(*init)(void))
+int lib_add_synth(const char *name, Synth *(*init)(const SynthType *type))
 {
 	if (numTypes == MAX_SYNTHS)
 		return 1;
