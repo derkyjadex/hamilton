@@ -1,7 +1,7 @@
-#include <stdbool.h>
 #include <SDL/SDL.h>
+#include <stdio.h>
 
-#include "private.h"
+#include "mq.h"
 
 static SDL_mutex *lock;
 
@@ -9,16 +9,20 @@ const size_t QUEUE_SIZE = 128;
 static Message _a[QUEUE_SIZE],
 			   _b[QUEUE_SIZE];
 
-static Message *reading = _a,
-			   *writing = _b;
-
-static int readNext = 0,
-		   readLength = 0,
-		   writeNext = 0;
+static Message *reading, *writing;
+static int readNext, readLength, writeNext;
 
 int mq_init()
 {
 	lock = SDL_CreateMutex();
+	if (!lock)
+		return 1;
+
+	reading = _a;
+	writing = _b;
+	readNext = 0;
+	readLength = 0;
+	writeNext = 0;
 
 	return 0;
 }
@@ -26,6 +30,7 @@ int mq_init()
 void mq_free()
 {
 	SDL_DestroyMutex(lock);
+	lock = NULL;
 }
 
 bool mq_push(Message *message) {
@@ -80,7 +85,7 @@ Message *mq_pop()
 	return message;
 }
 
-bool mq_note(int time, int channel, bool state, int num, float velocity)
+bool band_send_note(uint32_t time, int channel, bool state, int num, float velocity)
 {
 	Message message = {
 		.time = time,
@@ -97,7 +102,7 @@ bool mq_note(int time, int channel, bool state, int num, float velocity)
 	return mq_push(&message);
 }
 
-bool mq_pitch(int time, int channel, float offset)
+bool band_send_pitch(uint32_t time, int channel, float offset)
 {
 	Message message = {
 		.time = time,
@@ -113,7 +118,7 @@ bool mq_pitch(int time, int channel, float offset)
 	return mq_push(&message);
 }
 
-bool mq_cc(int time, int channel, float *control, float value)
+bool band_send_cc(uint32_t time, int channel, float *control, float value)
 {
 	Message message = {
 		.time = time,

@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "private.h"
+#include "lib.h"
 
 const int MAX_SYNTHS = 8;
 static SynthType types[MAX_SYNTHS];

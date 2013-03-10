@@ -1,23 +1,57 @@
 #include <SDL/SDL.h>
 
-#include "public.h"
+#include "band.h"
+#include "lib.h"
+#include "audio.h"
 
 int sine_wave_register();
 
-static int run_audio(int duration)
+static int run()
 {
 	int error;
 
+	SDL_Surface *screen = NULL;
+
+	error = SDL_Init(SDL_INIT_VIDEO);
+	if (error) goto end;
+
+	screen = SDL_SetVideoMode(800, 600, 0, 0);
+	if (!screen) goto end;
+
 	error = audio_init();
-	if (error)
-		return error;
+	if (error) goto end;
 
 	audio_start();
-	SDL_Delay(duration);
 
+	bool finished = false;
+	SDL_Event event;
+	SDLKey key;
+
+	while (!finished) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_KEYDOWN:
+				case SDL_KEYUP:
+					key = event.key.keysym.sym;
+					if (key >= SDLK_0 && key <= SDLK_9) {
+						band_send_note(0, 0, (event.type == SDL_KEYDOWN), key + 12, 1.0);
+					}
+					break;
+
+				case SDL_QUIT:
+					finished = true;
+					break;
+			}
+		}
+
+		SDL_Delay(4);
+	}
+
+end:
 	audio_free();
+	SDL_Quit();
 
-	return 0;
+	return error;
 }
 
 int main(int argc, char *argv[])
@@ -25,12 +59,10 @@ int main(int argc, char *argv[])
 	int error;
 
 	error = band_init();
-	if (error)
-		return error;
+	if (error) goto end;
 
 	error = sine_wave_register();
-	if (error)
-		return error;
+	if (error) goto end;
 
 	int n;
 	const SynthType *synths = lib_get_synths(&n);
@@ -38,19 +70,13 @@ int main(int argc, char *argv[])
 		printf("%d: %s\n", i, synths[i].name);
 	}
 
-	error = band_set_synth(0, &synths[0]);
-	if (error)
-		return error;
+	error = band_set_channel_synth(0, &synths[0]);
+	if (error) goto end;
 
-	mq_note(   0, 0, 1, 67, 1.0);
-	mq_note( 200, 0, 1, 69, 1.0);
-	mq_note( 400, 0, 0, 69, 1.0);
-	mq_note( 600, 0, 1, 67, 1.0);
-	mq_note( 800, 0, 0, 67, 1.0);
+	error = run();
 
-	run_audio(1500);
-
+end:
 	band_free();
 
-	return 0;
+	return error;
 }

@@ -1,15 +1,10 @@
-#include "public.h"
-
-int lib_init(void);
-void lib_free(void);
-
-extern Synth *synths[NUM_CHANNELS];
+#include <stdbool.h>
 
 typedef enum {
 	NOTE_OFF = 0,
 	NOTE_ON = 1,
-	PITCH = 2,
-	CONTROL = 3,
+	PITCH,
+	CONTROL
 } MessageType;
 
 typedef struct {
@@ -33,5 +28,6 @@ typedef struct {
 
 int mq_init(void);
 void mq_free(void);
+
 bool mq_push(Message *message);
 Message *mq_pop();

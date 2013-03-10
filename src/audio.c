@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "private.h"
+#include "audio.h"
+#include "band.h"
+
+static const int BUFFER_SIZE = 256;
 
 static void callback(void *_, Uint8 *buffer, int length)
 {
@@ -12,6 +15,11 @@ static void callback(void *_, Uint8 *buffer, int length)
 
 int audio_init()
 {
+	int error;
+
+	error = SDL_InitSubSystem(SDL_INIT_AUDIO);
+	if (error) goto end;
+
 	SDL_AudioSpec desired = {
 		.freq = SAMPLE_RATE,
 		.format = AUDIO_S16SYS,
@@ -21,17 +29,21 @@ int audio_init()
 		.userdata = NULL
 	}, obtained;
 
-	if (SDL_OpenAudio(&desired, &obtained) < 0) {
+	error = SDL_OpenAudio(&desired, &obtained);
+
+end:
+	if (error) {
 		fprintf(stderr, "Error opening audio: %s\n", SDL_GetError());
-		return 1;
+		audio_free();
 	}
 
-	return 0;
+	return error;
 }
 
 void audio_free()
 {
 	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void audio_start()

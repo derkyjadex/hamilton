@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "public.h"
+#include "synth.h"
+#include "band.h"
+#include "lib.h"
 
 int sine_wave_register();
 static const char *name = "Sine Wave";
@@ -10,8 +12,9 @@ static const char *controls[] = { };
 typedef struct SineSynth {
 	Synth base;
 
-	double t;
-	double f;
+	double time;
+	int note;
+	double freq;
 } SineSynth;
 
 static const char **get_controls(Synth *synth, int *numControls)
@@ -33,23 +36,28 @@ static double midi_to_freq(int note)
 static void start_note(Synth *synth, int num, float velocity)
 {
 	SineSynth *sine = (SineSynth *)synth;
-	sine->t = 0;
-	sine->f = midi_to_freq(num);
+	sine->time = 0;
+	sine->note = num;
+	sine->freq = midi_to_freq(num);
 }
 
 static void stop_note(Synth *synth, int num)
 {
 	SineSynth *sine = (SineSynth *)synth;
-	sine->t = 0;
-	sine->f = 0;
+
+	if (num == sine->note) {
+		sine->time = 0;
+		sine->note = 0;
+		sine->freq = 0;
+	}
 }
 
 static void generate(Synth *synth, int16_t *buffer, int length)
 {
 	SineSynth *sine = (SineSynth *)synth;
 
-	double t = sine->t;
-	double f = sine->f;
+	double t = sine->time;
+	double f = sine->freq;
 
 	for (int i = 0; i < length; i++) {
 		double x = sin(f * t * M_PI * 2);
@@ -59,7 +67,7 @@ static void generate(Synth *synth, int16_t *buffer, int length)
 		t += 1.0 / SAMPLE_RATE;
 	}
 
-	sine->t = t;
+	sine->time = t;
 }
 
 static void free_synth(Synth *synth)
@@ -82,8 +90,9 @@ static Synth *init(const SynthType *type)
 		.stopNote = stop_note,
 		.generate = generate
 	};
-	synth->t = 0;
-	synth->f = 0;
+	synth->time = 0;
+	synth->note = 0;
+	synth->freq = 0;
 
 	return &synth->base;
 }

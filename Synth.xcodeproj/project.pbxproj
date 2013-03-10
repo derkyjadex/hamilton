@@ -19,12 +19,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1A65C5E516ED2F0900C40716 /* public.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = public.h; sourceTree = "<group>"; };
 		1A65C5E616ED2F1900C40716 /* audio.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
 		1A65C5E716ED2F1900C40716 /* band.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = band.c; sourceTree = "<group>"; };
 		1A65C5E816ED2F1900C40716 /* lib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lib.c; sourceTree = "<group>"; };
 		1A65C5E916ED2F1900C40716 /* mq.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mq.c; sourceTree = "<group>"; };
-		1A65C5EA16ED2F1900C40716 /* private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = private.h; sourceTree = "<group>"; };
+		1A65C5EA16ED2F1900C40716 /* mq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mq.h; sourceTree = "<group>"; };
 		1A65C5EB16ED2F1900C40716 /* sine.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sine.c; sourceTree = "<group>"; };
 		1A65C5EC16ED2F1900C40716 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		1A65C5FF16ED2FB000C40716 /* Synth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Synth.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -37,6 +36,10 @@
 		1A65C62016ED304300C40716 /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = "<group>"; };
 		1A65C62116ED304300C40716 /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = "<group>"; };
 		1A65C62A16ED30E700C40716 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = osx/Info.plist; sourceTree = "<group>"; };
+		1A65C62C16ED386000C40716 /* synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = synth.h; sourceTree = "<group>"; };
+		1A65C62D16ED38B600C40716 /* band.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band.h; sourceTree = "<group>"; };
+		1A65C62E16ED393300C40716 /* lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lib.h; sourceTree = "<group>"; };
+		1A65C62F16ED3A1200C40716 /* audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,8 +74,8 @@
 				1A65C5E816ED2F1900C40716 /* lib.c */,
 				1A65C5EC16ED2F1900C40716 /* main.c */,
 				1A65C5E916ED2F1900C40716 /* mq.c */,
+				1A65C5EA16ED2F1900C40716 /* mq.h */,
 				1A65C61E16ED302A00C40716 /* osx */,
-				1A65C5EA16ED2F1900C40716 /* private.h */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
 			);
 			name = Source;
@@ -82,7 +85,10 @@
 		1A65C5E416ED2EB000C40716 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C5E516ED2F0900C40716 /* public.h */,
+				1A65C62F16ED3A1200C40716 /* audio.h */,
+				1A65C62D16ED38B600C40716 /* band.h */,
+				1A65C62E16ED393300C40716 /* lib.h */,
+				1A65C62C16ED386000C40716 /* synth.h */,
 			);
 			name = Headers;
 			path = include;

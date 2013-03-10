@@ -1,6 +1,8 @@
 #include <stdlib.h>
 
-#include "private.h"
+#include "band.h"
+#include "lib.h"
+#include "mq.h"
 
 Synth *synths[NUM_CHANNELS];
 static double time = 0;
@@ -18,12 +20,15 @@ int band_init()
 	message = NULL;
 
 	error = lib_init();
-	if (error)
-		return error;
+	if (error) goto end;
 
 	error = mq_init();
-	if (error)
-		return error;
+	if (error) goto end;
+
+end:
+	if (error) {
+		band_free();
+	}
 
 	return error;
 }
@@ -46,7 +51,7 @@ void band_get_channel_synths(const SynthType *types[NUM_CHANNELS])
 	}
 }
 
-int band_set_synth(int channel, const SynthType *type)
+int band_set_channel_synth(int channel, const SynthType *type)
 {
 	Synth **synth = &synths[channel];
 
@@ -55,8 +60,10 @@ int band_set_synth(int channel, const SynthType *type)
 	}
 
 	*synth = type->init(type);
+	if (!*synth)
+		return 1;
 
-	return *synth == NULL;
+	return 0;
 }
 
 const char **band_get_channel_controls(int channel, int *numControls)
@@ -125,6 +132,7 @@ void band_run(int16_t *buffer, int length)
 		}
 
 		time += duration;
+		buffer += samples;
 		length -= samples;
 
 	} while (length);
