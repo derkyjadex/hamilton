@@ -12,9 +12,9 @@ static const char *controls[] = { };
 typedef struct SineSynth {
 	Synth base;
 
-	double time;
+	float time;
 	int note;
-	double freq;
+	float freq;
 } SineSynth;
 
 static const char **get_controls(Synth *synth, int *numControls)
@@ -28,9 +28,9 @@ static float *get_control(Synth *synth, const char *control)
 	return NULL;
 }
 
-static double midi_to_freq(int note)
+static float midi_to_freq(int note)
 {
-	return (note <= 0) ? 0 : 440.0 * pow(2.0, (note - 69.0) / 12.0);
+	return (note <= 0) ? 0 : 440.0 * powf(2.0, (note - 69.0) / 12.0);
 }
 
 static void start_note(Synth *synth, int num, float velocity)
@@ -52,17 +52,17 @@ static void stop_note(Synth *synth, int num)
 	}
 }
 
-static void generate(Synth *synth, int16_t *buffer, int length)
+static void generate(Synth *synth, float *buffer, int length)
 {
 	SineSynth *sine = (SineSynth *)synth;
 
-	double t = sine->time;
-	double f = sine->freq;
+	float t = sine->time;
+	float f = sine->freq;
 
 	for (int i = 0; i < length; i++) {
-		double x = sin(f * t * M_PI * 2);
+		float x = sinf(f * t * M_PI * 2);
 
-		buffer[i] = x * 2000;
+		buffer[i] = x;
 
 		t += 1.0 / SAMPLE_RATE;
 	}

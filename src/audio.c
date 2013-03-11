@@ -8,9 +8,21 @@
 
 static const int BUFFER_SIZE = 256;
 
-static void callback(void *_, Uint8 *buffer, int length)
+static void callback(void *_, Uint8 *output, int length)
 {
-	band_run((int16_t *)buffer, length / 2);
+	length /= 2;
+	float buffer[length];
+
+	band_run(buffer, length);
+
+	int16_t *samples = (int16_t *)output;
+
+	for (int i = 0; i < length; i++) {
+		float x = buffer[i];
+		x = (x < -1.0) ? -1.0 : (x < 1.0) ? x: 1.0;
+
+		samples[i] = 32767.0 * x;
+	}
 }
 
 int audio_init()

@@ -1,8 +1,6 @@
 #ifndef _HAMILTON_SYNTH_H
 #define _HAMILTON_SYNTH_H
 
-#include <stdint.h>
-
 struct Synth;
 struct SynthType;
 
@@ -24,7 +22,7 @@ struct Synth {
 	void (*startNote)(Synth *synth, int num, float velocity);
 	void (*stopNote)(Synth *synth, int num);
 
-	void (*generate)(Synth *synth, int16_t *buffer, int length);
+	void (*generate)(Synth *synth, float *buffer, int length);
 };
 
 #endif

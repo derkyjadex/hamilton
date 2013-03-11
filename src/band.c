@@ -100,7 +100,7 @@ static void process_message()
 	}
 }
 
-void band_run(int16_t *buffer, int length)
+void band_run(float *buffer, int length)
 {
 	do {
 		if (!message) {
