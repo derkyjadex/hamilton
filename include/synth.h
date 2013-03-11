@@ -1,5 +1,5 @@
-#ifndef SYNTH_SYNTH_H
-#define SYNTH_SYNTH_H
+#ifndef _HAMILTON_SYNTH_H
+#define _HAMILTON_SYNTH_H
 
 #include <stdint.h>
 

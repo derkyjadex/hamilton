@@ -1,5 +1,5 @@
-#ifndef SYNTH_AUDIO_H
-#define SYNTH_AUDIO_H
+#ifndef _HAMILTON_AUDIO_H
+#define _HAMILTON_AUDIO_H
 
 int audio_init(void);
 void audio_free(void);

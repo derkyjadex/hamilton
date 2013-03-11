@@ -1,5 +1,5 @@
-#ifndef SYNTH_LIB_H
-#define SYNTH_LIB_H
+#ifndef _HAMILTON_LIB_H
+#define _HAMILTON_LIB_H
 
 #include "synth.h"
 

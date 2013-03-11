@@ -1,5 +1,5 @@
-#ifndef SYNTH_BAND_H
-#define SYNTH_BAND_H
+#ifndef _HAMILTON_BAND_H
+#define _HAMILTON_BAND_H
 
 #include <stdint.h>
 #include <stdbool.h>
