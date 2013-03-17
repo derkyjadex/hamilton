@@ -59,14 +59,10 @@ const int NUM_CONTROLS = 16;
 const int NUM_PATCHES = 32;
 const int NUM_VOICES = 8;
 const int SILENCE = 0.0003f;  //voice choking
-
-const int EVENTBUFFER = 120;
-const int EVENTS_DONE = 99999999;
 const int SUSTAIN = 128;
 
 struct Patch {
 	float controls[NUM_CONTROLS];
-	char name[24];
 };
 
 struct Voice {
@@ -91,38 +87,22 @@ typedef struct Dx10 {
 	struct Patch patches[NUM_PATCHES];
 	int currentPatch;
 
-	int32_t notes[EVENTBUFFER + 8];  //list of delta|note|velocity for current block
+	struct Voice voices[NUM_VOICES];
+	int32_t activevoices;
 
-	struct Voice voice[NUM_VOICES];
-	int32_t sustain, activevoices, K;
+	bool sustain;
+	int32_t k;
 
 	float tune, rati, ratf, ratio; //modulator ratio
 	float catt, cdec, crel;        //carrier envelope
 	float depth, dept2, mdec, mrel; //modulator envelope
-	float lfo0, lfo1, dlfo, modwhl, MW, pbend, velsens, volume, vibrato; //LFO and CC
+	float lfo0, lfo1, dlfo, modwhl, mw, pbend, velsens, volume, vibrato; //LFO and CC
 	float rich, modmix;
 } Dx10;
 
-static const char **get_controls(Synth *base, int *numControls)
-{
-	*numControls = 0;
-	return controls;
-}
-
-static float *get_control(Synth *base, const char *control)
-{
-	return NULL;
-}
-
-static float midi_to_freq(int note)
-{
-	return (note <= 0) ? 0 : 440.0 * powf(2.0, (note - 69.0) / 12.0);
-}
-
-//parameter change //if multitimbral would have to move all this...
 void update_params(Dx10 *this)
 {
-	float ifs = 1.0f / SAMPLE_RATE;
+	const float ifs = 1.0f / SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;
 
 	this->tune = (float)(8.175798915644 * ifs * pow(2.0, floor(controls[11] * 6.9) - 2.0));
@@ -130,7 +110,7 @@ void update_params(Dx10 *this)
 	this->rati = controls[3];
 	this->rati = (float)floor(40.1f * this->rati * this->rati);
 
-	if(controls[4] < 0.5f) {
+	if (controls[4] < 0.5f) {
 		this->ratf = 0.2f * controls[4] * controls[4];
 
 	} else {
@@ -168,167 +148,141 @@ void update_params(Dx10 *this)
 	this->dlfo = 628.3f * ifs * 25.0f * controls[15] * controls[15]; //these params not in original DX10
 }
 
-static void note_on(Dx10 *this, int32_t note, int32_t velocity)
+static void start_note(Synth *base, int note, float velocity)
 {
-	float *param = this->patches[this->currentPatch].controls;
-	float l = 1.0f;
-	int32_t v, vl = 0;
+	Dx10 *this = (Dx10 *)base;
 
-	if(velocity > 0) {
-		//find quietest voice
-		for (v = 0; v < NUM_VOICES; v++) {
-			if(this->voice[v].env < l) {
-				l = this->voice[v].env;
-				vl = v;
-			}
+	float *controls = this->patches[this->currentPatch].controls;
+
+	float level = 1;
+	struct Voice *voice;
+
+	//find quietest voice
+	for (int i = 0; i < NUM_VOICES; i++) {
+		if (this->voices[i].env < level) {
+			level = this->voices[i].env;
+			voice = &this->voices[i];
 		}
+	}
 
-		l = (float)exp(0.05776226505f * ((float)note + param[12] + param[12] - 1.0f));
-		this->voice[vl].note = note;                         //fine tuning
-		this->voice[vl].car  = 0.0f;
-		this->voice[vl].dcar = this->tune * this->pbend * l; //pitch bend not updated during note as a bit tricky...
+	level = (float)exp(0.05776226505f * ((float)note + controls[12] + controls[12] - 1.0f));
+	voice->note = note;                         //fine tuning
+	voice->car  = 0.0f;
+	voice->dcar = this->tune * this->pbend * level; //pitch bend not updated during note as a bit tricky...
 
-		if (l > 50.0f) l = 50.0f; //key tracking
+	if (level > 50.0f) level = 50.0f; //key tracking
 
-		l *= (64.0f + this->velsens * (velocity - 64)); //vel sens
-		this->voice[vl].menv = this->depth * l;
-		this->voice[vl].mlev = this->dept2 * l;
-		this->voice[vl].mdec = this->mdec;
+	level *= (64.0f + this->velsens * (velocity * 127 - 64)); //vel sens
+	voice->menv = this->depth * level;
+	voice->mlev = this->dept2 * level;
+	voice->mdec = this->mdec;
 
-		this->voice[vl].dmod = this->ratio * this->voice[vl].dcar; //sine oscillator
-		this->voice[vl].mod0 = 0.0f;
-		this->voice[vl].mod1 = (float)sin(this->voice[vl].dmod);
-		this->voice[vl].dmod = 2.0f * (float)cos(this->voice[vl].dmod);
-		//scale volume with richness
-		this->voice[vl].env  = (1.5f - param[13]) * this->volume * (velocity + 10);
-		this->voice[vl].catt = this->catt;
-		this->voice[vl].cenv = 0.0f;
-		this->voice[vl].cdec = this->cdec;
+	voice->dmod = this->ratio * voice->dcar; //sine oscillator
+	voice->mod0 = 0.0f;
+	voice->mod1 = (float)sin(voice->dmod);
+	voice->dmod = 2.0f * (float)cos(voice->dmod);
+	//scale volume with richness
+	voice->env  = (1.5f - controls[13]) * this->volume * (velocity * 127 + 10);
+	voice->catt = this->catt;
+	voice->cenv = 0.0f;
+	voice->cdec = this->cdec;
+}
 
-	} else {
-		//note off
-		//any voices playing that note?
-		for (v = 0; v < NUM_VOICES; v++) {
-			if (this->voice[v].note == note) {
-				if (this->sustain == 0) {
-					this->voice[v].cdec = this->crel; //release phase
-					this->voice[v].env  = this->voice[v].cenv;
-					this->voice[v].catt = 1.0f;
-					this->voice[v].mlev = 0.0f;
-					this->voice[v].mdec = this->mrel;
+static void stop_note(Synth *base, int note)
+{
+	Dx10 *this = (Dx10 *)base;
 
-				} else {
-					this->voice[v].note = SUSTAIN;
-				}
+	for (int i = 0; i < NUM_VOICES; i++) {
+		struct Voice *voice = &this->voices[i];
+
+		if (voice->note == note) {
+			if (!this->sustain) {
+				voice->cdec = this->crel; //release phase
+				voice->env  = voice->cenv;
+				voice->catt = 1.0f;
+				voice->mlev = 0.0f;
+				voice->mdec = this->mrel;
+
+			} else {
+				voice->note = SUSTAIN;
 			}
 		}
 	}
 }
 
-static void start_note(Synth *base, int num, float velocity)
+static const char **get_controls(Synth *base, int *numControls)
 {
-	Dx10 *this = (Dx10 *)base;
-
-	int32_t npos = 0;
-	this->notes[npos++] = 0;
-	this->notes[npos++] = num;
-	this->notes[npos++] = velocity * 127;
-	this->notes[npos] = EVENTS_DONE;
+	*numControls = NUM_CONTROLS;
+	return controls;
 }
 
-static void stop_note(Synth *base, int num)
+static float *get_control(Synth *base, const char *control)
 {
-	Dx10 *this = (Dx10 *)base;
-
-	int32_t npos = 0;
-	this->notes[npos++] = 0;
-	this->notes[npos++] = num;
-	this->notes[npos++] = 0;
+	return NULL;
 }
 
 static void generate(Synth *base, float *output, int samples)
 {
 	Dx10 *this = (Dx10 *)base;
 
-	int32_t event = 0, frame = 0, frames, v;
-	float o, x, e, mw = this->MW, w = this->rich, m = this->modmix;
-	int32_t k = this->K;
+	float mw = this->mw;
+	float rich = this->rich;
+	float modmix = this->modmix;
+	int32_t k = this->k;
 
-	//detect & bypass completely empty blocks
-	if(this->activevoices > 0 || this->notes[event] < samples) {
-		while (frame < samples) {
-			frames = this->notes[event++];
-			if (frames > samples) {
-				frames = samples;
-			}
-			frames -= frame;
-			frame += frames;
-
-			//would be faster with voice loop outside frame loop!
-			//but then each voice would need it's own LFO...
-			while(--frames >= 0) {
-				struct Voice *V = this->voice;
-				o = 0.0f;
-
-				if(--k < 0) {
-					this->lfo0 += this->dlfo * this->lfo1; //sine LFO
-					this->lfo1 -= this->dlfo * this->lfo0;
-					mw = this->lfo1 * (this->modwhl + this->vibrato);
-					k = 100;
-				}
-
-				//for each voice
-				for(v = 0; v < NUM_VOICES; v++) {
-					e = V->env;
-
-					//**** this is the synth ****
-					if(e > SILENCE) {
-						V->env = e * V->cdec; //decay & release
-						V->cenv += V->catt * (e - V->cenv); //attack
-
-						x = V->dmod * V->mod0 - V->mod1; //could add more modulator blocks like
-						V->mod1 = V->mod0;               //this for a wider range of FM sounds
-						V->mod0 = x;
-						V->menv += V->mdec * (V->mlev - V->menv);
-
-						x = V->car + V->dcar + x * V->menv + mw; //carrier phase
-						while(x >  1.0f) x -= 2.0f;  //wrap phase
-						while(x < -1.0f) x += 2.0f;
-						V->car = x;
-						o += V->cenv * (m * V->mod1 + (x + x * x * x * (w * x * x - 1.0f - w)));
-					}        //amp env //mod thru-mix //5th-order sine approximation
-
-					V++;
-				}
-
-				*output++ += o;
-			}
-
-			//next note on/off
-			if (frame < samples) {
-				int32_t note = this->notes[event++];
-				int32_t vel  = this->notes[event++];
-				note_on(this, note, vel);
-			}
+	this->activevoices = NUM_VOICES;
+	for (int i = 0; i < NUM_VOICES; i++) {
+		if (this->voices[i].env < SILENCE) {
+			this->voices[i].env = this->voices[i].cenv = 0.0f;
+			this->activevoices--;
 		}
 
-		this->activevoices = NUM_VOICES;
-		for(v = 0; v < NUM_VOICES; v++) {
-			//choke voices that have finished
-			if(this->voice[v].env < SILENCE) {
-				this->voice[v].env = this->voice[v].cenv = 0.0f;
-				this->activevoices--;
-			}
-
-			if(this->voice[v].menv < SILENCE) {
-				this->voice[v].menv = this->voice[v].mlev = 0.0f;
-			}
+		if (this->voices[i].menv < SILENCE) {
+			this->voices[i].menv = this->voices[i].mlev = 0.0f;
 		}
 	}
 
-	this->K = k;
-	this->MW = mw;
-	this->notes[0] = EVENTS_DONE;
+	if (this->activevoices == 0)
+		return;
+
+	while (--samples >= 0) {
+		float out = 0.0f;
+
+		if(--k < 0) {
+			this->lfo0 += this->dlfo * this->lfo1; //sine LFO
+			this->lfo1 -= this->dlfo * this->lfo0;
+			mw = this->lfo1 * (this->modwhl + this->vibrato);
+			k = 100;
+		}
+
+		for (int i = 0; i < NUM_VOICES; i++) {
+			struct Voice *voice = &this->voices[i];
+			float env = voice->env;
+
+			//**** this is the synth ****
+			if(env > SILENCE) {
+				voice->env = env * voice->cdec; //decay & release
+				voice->cenv += voice->catt * (env - voice->cenv); //attack
+
+				float x = voice->dmod * voice->mod0 - voice->mod1; //could add more modulator blocks like
+				voice->mod1 = voice->mod0;               //this for a wider range of FM sounds
+				voice->mod0 = x;
+				voice->menv += voice->mdec * (voice->mlev - voice->menv);
+
+				x = voice->car + voice->dcar + x * voice->menv + mw; //carrier phase
+				while(x >  1.0f) x -= 2.0f;  //wrap phase
+				while(x < -1.0f) x += 2.0f;
+				voice->car = x;
+
+				out += voice->cenv * (modmix * voice->mod1 + (x + x * x * x * (rich * x * x - 1.0f - rich)));
+			}          //amp env      //mod thru-mix          //5th-order sine approximation
+		}
+
+		*output++ += out;
+	}
+
+	this->k = k;
+	this->mw = mw;
 }
 
 static void free_synth(Synth *synth)
@@ -402,18 +356,19 @@ static Synth *init(const SynthType *type)
 	this->currentPatch = 0;
 
 	for (int i = 0; i < NUM_VOICES; i++) {
-		this->voice[i].env = 0.0f;
-		this->voice[i].car = this->voice[i].dcar = 0.0f;
-		this->voice[i].mod0 = this->voice[i].mod1 = this->voice[i].dmod = 0.0f;
-		this->voice[i].cdec = 0.99f;
+		this->voices[i].env = 0.0f;
+		this->voices[i].car = this->voices[i].dcar = 0.0f;
+		this->voices[i].mod0 = this->voices[i].mod1 = this->voices[i].dmod = 0.0f;
+		this->voices[i].cdec = 0.99f;
 	}
 
-	this->notes[0] = EVENTS_DONE;
+	this->activevoices = 0;
+	this->sustain = false;
+	this->k = 0;
+
 	this->lfo0 = this->dlfo = this->modwhl = 0.0f;
 	this->lfo1 = this->pbend = 1.0f;
 	this->volume = 0.0035f;
-	this->sustain = this->activevoices = 0;
-	this->K = 0;
 
 	update_params(this);
 
