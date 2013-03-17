@@ -81,6 +81,8 @@ float *band_get_channel_control(int channel, const char *control)
 static void process_message()
 {
 	Synth *synth = synths[message->channel];
+	if (!synth)
+		return;
 
 	switch (message->type) {
 		case NOTE_OFF:
