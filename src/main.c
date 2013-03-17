@@ -19,7 +19,7 @@ static int run()
 	error = SDL_Init(SDL_INIT_VIDEO);
 	if (error) goto end;
 
-	screen = SDL_SetVideoMode(800, 600, 0, 0);
+	screen = SDL_SetVideoMode(300, 200, 0, 0);
 	if (!screen) goto end;
 
 	Pm_Initialize();
