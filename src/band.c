@@ -102,6 +102,10 @@ static void process_message()
 
 void band_run(float *buffer, int length)
 {
+	for (int i = 0; i < length ; i++) {
+		buffer[i] = 0;
+	}
+
 	do {
 		if (!message) {
 			message = mq_pop();
