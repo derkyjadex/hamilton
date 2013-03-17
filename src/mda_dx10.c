@@ -55,21 +55,22 @@ static const char *controls[] = {
 	"LFO Rate"
 };
 
-typedef int32_t VstInt32;
+const int NUM_CONTROLS = 16;
+const int NUM_PATCHES = 32;
+const int NUM_VOICES = 8;
+const int SILENCE = 0.0003f;  //voice choking
 
-#define NPARAMS 16       //number of parameters
-#define NPROGS  32       //number of programs
-#define NOUTS    2       //number of outputs
-#define NVOICES  8       //max polyphony
-#define SILENCE 0.0003f  //voice choking
+const int EVENTBUFFER = 120;
+const int EVENTS_DONE = 99999999;
+const int SUSTAIN = 128;
 
-typedef struct mdaDX10Program {
-	float param[NPARAMS];
-	char  name[24];
-} mdaDX10Program;
+struct Patch {
+	float controls[NUM_CONTROLS];
+	char name[24];
+};
 
-//voice state
-typedef struct VOICE  {
+struct Voice {
+	int32_t note; //remember what note triggered this
 	float env;  //carrier envelope
 	float dmod; //modulator oscillator
 	float mod0;
@@ -82,23 +83,18 @@ typedef struct VOICE  {
 	float cenv; //smoothed env
 	float catt; //smoothing
 	float cdec; //carrier envelope decay
-	VstInt32 note; //remember what note triggered this
-} VOICE;
+};
 
 typedef struct Dx10 {
 	Synth base;
 
-	int curProgram;
-	mdaDX10Program programs[NPROGS];
-	float Fs;
+	struct Patch patches[NUM_PATCHES];
+	int currentPatch;
 
-	#define EVENTBUFFER 120
-	#define EVENTS_DONE 99999999
-	VstInt32 notes[EVENTBUFFER + 8];  //list of delta|note|velocity for current block
+	int32_t notes[EVENTBUFFER + 8];  //list of delta|note|velocity for current block
 
-	VOICE voice[NVOICES];
-	#define SUSTAIN 128
-	VstInt32 sustain, activevoices, K;
+	struct Voice voice[NUM_VOICES];
+	int32_t sustain, activevoices, K;
 
 	float tune, rati, ratf, ratio; //modulator ratio
 	float catt, cdec, crel;        //carrier envelope
@@ -123,43 +119,22 @@ static float midi_to_freq(int note)
 	return (note <= 0) ? 0 : 440.0 * powf(2.0, (note - 69.0) / 12.0);
 }
 
-static void fill_program(Dx10 *this, int i, float p0, float p1, float p2, float p3, float p4, float p5, float p6, float p7, float p8, float p9, float p10, float p11, float p12, float p13, float p14, float p15)
-{
-	float *param = this->programs[i].param;
-	param[0] = p0;
-	param[1] = p1;
-	param[2] = p2;
-	param[3] = p3;
-	param[4] = p4;
-	param[5] = p5;
-	param[6] = p6;
-	param[7] = p7;
-	param[8] = p8;
-	param[9] = p9;
-	param[10] = p10;
-	param[11] = p11;
-	param[12] = p12;
-	param[13] = p13;
-	param[14] = p14;
-	param[15] = p15;
-}
-
 //parameter change //if multitimbral would have to move all this...
-void update(Dx10 *this)
+void update_params(Dx10 *this)
 {
-	float ifs = 1.0f / this->Fs;
-	float *param = this->programs[this->curProgram].param;
+	float ifs = 1.0f / SAMPLE_RATE;
+	float *controls = this->patches[this->currentPatch].controls;
 
-	this->tune = (float)(8.175798915644 * ifs * pow(2.0, floor(param[11] * 6.9) - 2.0));
+	this->tune = (float)(8.175798915644 * ifs * pow(2.0, floor(controls[11] * 6.9) - 2.0));
 
-	this->rati = param[3];
+	this->rati = controls[3];
 	this->rati = (float)floor(40.1f * this->rati * this->rati);
 
-	if(param[4] < 0.5f) {
-		this->ratf = 0.2f * param[4] * param[4];
+	if(controls[4] < 0.5f) {
+		this->ratf = 0.2f * controls[4] * controls[4];
 
 	} else {
-		switch((VstInt32)(8.9f * param[4])) {
+		switch((int32_t)(8.9f * controls[4])) {
 			case  4: this->ratf = 0.25f;       break;
 			case  5: this->ratf = 0.33333333f; break;
 			case  6: this->ratf = 0.50f;       break;
@@ -170,38 +145,38 @@ void update(Dx10 *this)
 
 	this->ratio = 1.570796326795f * (this->rati + this->ratf);
 
-	this->depth = 0.0002f * param[5] * param[5];
-	this->dept2 = 0.0002f * param[7] * param[7];
+	this->depth = 0.0002f * controls[5] * controls[5];
+	this->dept2 = 0.0002f * controls[7] * controls[7];
 
-	this->velsens = param[9];
-	this->vibrato = 0.001f * param[10] * param[10];
+	this->velsens = controls[9];
+	this->vibrato = 0.001f * controls[10] * controls[10];
 
-	this->catt = 1.0f - (float)exp(-ifs * exp(8.0 - 8.0 * param[0]));
+	this->catt = 1.0f - (float)exp(-ifs * exp(8.0 - 8.0 * controls[0]));
 
-	if(param[1]>0.98f) {
+	if(controls[1]>0.98f) {
 		this->cdec = 1.0f;
 	} else {
-		this->cdec = (float)exp(-ifs * exp(5.0 - 8.0 * param[1]));
+		this->cdec = (float)exp(-ifs * exp(5.0 - 8.0 * controls[1]));
 	}
 
-	this->crel =        (float)exp(-ifs * exp(5.0 - 5.0 * param[2]));
-	this->mdec = 1.0f - (float)exp(-ifs * exp(6.0 - 7.0 * param[6]));
-	this->mrel = 1.0f - (float)exp(-ifs * exp(5.0 - 8.0 * param[8]));
+	this->crel =        (float)exp(-ifs * exp(5.0 - 5.0 * controls[2]));
+	this->mdec = 1.0f - (float)exp(-ifs * exp(6.0 - 7.0 * controls[6]));
+	this->mrel = 1.0f - (float)exp(-ifs * exp(5.0 - 8.0 * controls[8]));
 
-	this->rich = 0.50f - 3.0f * param[13] * param[13];
-	this->modmix = 0.25f * param[14] * param[14];
-	this->dlfo = 628.3f * ifs * 25.0f * param[15] * param[15]; //these params not in original DX10
+	this->rich = 0.50f - 3.0f * controls[13] * controls[13];
+	this->modmix = 0.25f * controls[14] * controls[14];
+	this->dlfo = 628.3f * ifs * 25.0f * controls[15] * controls[15]; //these params not in original DX10
 }
 
-static void noteOn(Dx10 *this, VstInt32 note, VstInt32 velocity)
+static void note_on(Dx10 *this, int32_t note, int32_t velocity)
 {
-	float *param = this->programs[this->curProgram].param;
+	float *param = this->patches[this->currentPatch].controls;
 	float l = 1.0f;
-	VstInt32 v, vl = 0;
+	int32_t v, vl = 0;
 
 	if(velocity > 0) {
 		//find quietest voice
-		for (v = 0; v < NVOICES; v++) {
+		for (v = 0; v < NUM_VOICES; v++) {
 			if(this->voice[v].env < l) {
 				l = this->voice[v].env;
 				vl = v;
@@ -233,9 +208,9 @@ static void noteOn(Dx10 *this, VstInt32 note, VstInt32 velocity)
 	} else {
 		//note off
 		//any voices playing that note?
-		for(v = 0; v < NVOICES; v++) {
-			if(this->voice[v].note == note) {
-				if(this->sustain==0) {
+		for (v = 0; v < NUM_VOICES; v++) {
+			if (this->voice[v].note == note) {
+				if (this->sustain == 0) {
 					this->voice[v].cdec = this->crel; //release phase
 					this->voice[v].env  = this->voice[v].cenv;
 					this->voice[v].catt = 1.0f;
@@ -254,7 +229,7 @@ static void start_note(Synth *base, int num, float velocity)
 {
 	Dx10 *this = (Dx10 *)base;
 
-	VstInt32 npos = 0;
+	int32_t npos = 0;
 	this->notes[npos++] = 0;
 	this->notes[npos++] = num;
 	this->notes[npos++] = velocity * 127;
@@ -265,30 +240,26 @@ static void stop_note(Synth *base, int num)
 {
 	Dx10 *this = (Dx10 *)base;
 
-	VstInt32 npos = 0;
+	int32_t npos = 0;
 	this->notes[npos++] = 0;
 	this->notes[npos++] = num;
 	this->notes[npos++] = 0;
 }
 
-static void generate(Synth *base, float *buffer, int length)
+static void generate(Synth *base, float *output, int samples)
 {
 	Dx10 *this = (Dx10 *)base;
-	float **outputs = &buffer;
-	VstInt32 sampleFrames = length;
 
-	float* out1 = outputs[0];
-//	float* out2 = outputs[1];
-	VstInt32 event = 0, frame = 0, frames, v;
+	int32_t event = 0, frame = 0, frames, v;
 	float o, x, e, mw = this->MW, w = this->rich, m = this->modmix;
-	VstInt32 k = this->K;
+	int32_t k = this->K;
 
 	//detect & bypass completely empty blocks
-	if(this->activevoices > 0 || this->notes[event] < sampleFrames) {
-		while (frame < sampleFrames) {
+	if(this->activevoices > 0 || this->notes[event] < samples) {
+		while (frame < samples) {
 			frames = this->notes[event++];
-			if (frames > sampleFrames) {
-				frames = sampleFrames;
+			if (frames > samples) {
+				frames = samples;
 			}
 			frames -= frame;
 			frame += frames;
@@ -296,7 +267,7 @@ static void generate(Synth *base, float *buffer, int length)
 			//would be faster with voice loop outside frame loop!
 			//but then each voice would need it's own LFO...
 			while(--frames >= 0) {
-				VOICE *V = this->voice;
+				struct Voice *V = this->voice;
 				o = 0.0f;
 
 				if(--k < 0) {
@@ -307,7 +278,7 @@ static void generate(Synth *base, float *buffer, int length)
 				}
 
 				//for each voice
-				for(v = 0; v < NVOICES; v++) {
+				for(v = 0; v < NUM_VOICES; v++) {
 					e = V->env;
 
 					//**** this is the synth ****
@@ -330,20 +301,19 @@ static void generate(Synth *base, float *buffer, int length)
 					V++;
 				}
 
-				*out1++ += o;
-//				*out2++ += o;
+				*output++ += o;
 			}
 
 			//next note on/off
-			if (frame < sampleFrames) {
-				VstInt32 note = this->notes[event++];
-				VstInt32 vel  = this->notes[event++];
-				noteOn(this, note, vel);
+			if (frame < samples) {
+				int32_t note = this->notes[event++];
+				int32_t vel  = this->notes[event++];
+				note_on(this, note, vel);
 			}
 		}
 
-		this->activevoices = NVOICES;
-		for(v = 0; v < NVOICES; v++) {
+		this->activevoices = NUM_VOICES;
+		for(v = 0; v < NUM_VOICES; v++) {
 			//choke voices that have finished
 			if(this->voice[v].env < SILENCE) {
 				this->voice[v].env = this->voice[v].cenv = 0.0f;
@@ -366,6 +336,51 @@ static void free_synth(Synth *synth)
 	free(synth);
 }
 
+static void set_patch(Dx10 *this, int patch, float controls[NUM_CONTROLS])
+{
+	float *patch_controls = this->patches[patch].controls;
+
+	for (int i = 0; i < NUM_CONTROLS; i++) {
+		patch_controls[i] = controls[i];
+	}
+}
+
+static void set_patches(Dx10 *this)
+{
+	set_patch(this,  0, (float[]){0.000, 0.650, 0.441, 0.842, 0.329, 0.230, 0.800, 0.050, 0.800, 0.900, 0.000, 0.500, 0.500, 0.447, 0.000, 0.414});
+	set_patch(this,  1, (float[]){0.000, 0.500, 0.100, 0.671, 0.000, 0.441, 0.336, 0.243, 0.800, 0.500, 0.000, 0.500, 0.500, 0.178, 0.000, 0.500});
+	set_patch(this,  2, (float[]){0.000, 0.700, 0.400, 0.230, 0.184, 0.270, 0.474, 0.224, 0.800, 0.974, 0.250, 0.500, 0.500, 0.428, 0.836, 0.500});
+	set_patch(this,  3, (float[]){0.000, 0.700, 0.400, 0.320, 0.217, 0.599, 0.670, 0.309, 0.800, 0.500, 0.263, 0.507, 0.500, 0.276, 0.638, 0.526});
+	set_patch(this,  4, (float[]){0.400, 0.600, 0.650, 0.760, 0.000, 0.390, 0.250, 0.160, 0.900, 0.500, 0.362, 0.500, 0.500, 0.401, 0.296, 0.493});
+	set_patch(this,  5, (float[]){0.000, 0.342, 0.000, 0.280, 0.000, 0.880, 0.100, 0.408, 0.740, 0.000, 0.000, 0.600, 0.500, 0.842, 0.651, 0.500});
+	set_patch(this,  6, (float[]){0.000, 0.400, 0.100, 0.360, 0.000, 0.875, 0.160, 0.592, 0.800, 0.500, 0.000, 0.500, 0.500, 0.303, 0.868, 0.500});
+	set_patch(this,  7, (float[]){0.000, 0.500, 0.704, 0.230, 0.000, 0.151, 0.750, 0.493, 0.770, 0.500, 0.000, 0.400, 0.500, 0.421, 0.632, 0.500});
+	set_patch(this,  8, (float[]){0.600, 0.990, 0.400, 0.320, 0.283, 0.570, 0.300, 0.050, 0.240, 0.500, 0.138, 0.500, 0.500, 0.283, 0.822, 0.500});
+	set_patch(this,  9, (float[]){0.000, 0.500, 0.650, 0.368, 0.651, 0.395, 0.550, 0.257, 0.900, 0.500, 0.300, 0.800, 0.500, 0.000, 0.414, 0.500});
+	set_patch(this, 10, (float[]){0.000, 0.700, 0.520, 0.230, 0.197, 0.520, 0.720, 0.280, 0.730, 0.500, 0.250, 0.500, 0.500, 0.336, 0.428, 0.500});
+	set_patch(this, 11, (float[]){0.000, 0.240, 0.000, 0.390, 0.000, 0.880, 0.100, 0.600, 0.740, 0.500, 0.000, 0.500, 0.500, 0.526, 0.480, 0.500});
+	set_patch(this, 12, (float[]){0.000, 0.500, 0.700, 0.160, 0.000, 0.158, 0.349, 0.000, 0.280, 0.900, 0.000, 0.618, 0.500, 0.401, 0.000, 0.500});
+	set_patch(this, 13, (float[]){0.000, 0.500, 0.100, 0.390, 0.000, 0.490, 0.250, 0.250, 0.800, 0.500, 0.000, 0.500, 0.500, 0.263, 0.145, 0.500});
+	set_patch(this, 14, (float[]){0.000, 0.300, 0.507, 0.480, 0.730, 0.000, 0.100, 0.303, 0.730, 1.000, 0.000, 0.600, 0.500, 0.579, 0.000, 0.500});
+	set_patch(this, 15, (float[]){0.000, 0.300, 0.500, 0.320, 0.000, 0.467, 0.079, 0.158, 0.500, 0.500, 0.000, 0.400, 0.500, 0.151, 0.020, 0.500});
+	set_patch(this, 16, (float[]){0.000, 0.990, 0.100, 0.230, 0.000, 0.000, 0.200, 0.450, 0.800, 0.000, 0.112, 0.600, 0.500, 0.711, 0.000, 0.401});
+	set_patch(this, 17, (float[]){0.280, 0.990, 0.280, 0.230, 0.000, 0.180, 0.400, 0.300, 0.800, 0.500, 0.000, 0.400, 0.500, 0.217, 0.480, 0.500});
+	set_patch(this, 18, (float[]){0.220, 0.990, 0.250, 0.170, 0.000, 0.240, 0.310, 0.257, 0.900, 0.757, 0.000, 0.500, 0.500, 0.697, 0.803, 0.500});
+	set_patch(this, 19, (float[]){0.220, 0.990, 0.250, 0.450, 0.070, 0.240, 0.310, 0.360, 0.900, 0.500, 0.211, 0.500, 0.500, 0.184, 0.000, 0.414});
+	set_patch(this, 20, (float[]){0.697, 0.990, 0.421, 0.230, 0.138, 0.750, 0.390, 0.513, 0.800, 0.316, 0.467, 0.678, 0.500, 0.743, 0.757, 0.487});
+	set_patch(this, 21, (float[]){0.000, 0.400, 0.000, 0.280, 0.125, 0.474, 0.250, 0.100, 0.500, 0.500, 0.000, 0.400, 0.500, 0.579, 0.592, 0.500});
+	set_patch(this, 22, (float[]){0.230, 0.500, 0.100, 0.395, 0.000, 0.388, 0.092, 0.250, 0.150, 0.500, 0.200, 0.200, 0.500, 0.178, 0.822, 0.500});
+	set_patch(this, 23, (float[]){0.000, 0.600, 0.400, 0.230, 0.000, 0.450, 0.320, 0.050, 0.900, 0.500, 0.000, 0.200, 0.500, 0.520, 0.105, 0.500});
+	set_patch(this, 24, (float[]){0.000, 0.600, 0.400, 0.170, 0.145, 0.290, 0.350, 0.100, 0.900, 0.500, 0.000, 0.400, 0.500, 0.441, 0.309, 0.500});
+	set_patch(this, 25, (float[]){0.000, 0.600, 0.490, 0.170, 0.151, 0.099, 0.400, 0.000, 0.900, 0.500, 0.000, 0.400, 0.500, 0.118, 0.013, 0.500});
+	set_patch(this, 26, (float[]){0.000, 0.600, 0.100, 0.320, 0.000, 0.350, 0.670, 0.100, 0.150, 0.500, 0.000, 0.200, 0.500, 0.303, 0.730, 0.500});
+	set_patch(this, 27, (float[]){0.300, 0.500, 0.400, 0.280, 0.000, 0.180, 0.540, 0.000, 0.700, 0.500, 0.000, 0.400, 0.500, 0.296, 0.033, 0.500});
+	set_patch(this, 28, (float[]){0.300, 0.500, 0.400, 0.360, 0.000, 0.461, 0.070, 0.070, 0.700, 0.500, 0.000, 0.400, 0.500, 0.546, 0.467, 0.500});
+	set_patch(this, 29, (float[]){0.000, 0.500, 0.500, 0.280, 0.000, 0.330, 0.200, 0.000, 0.700, 0.500, 0.000, 0.500, 0.500, 0.151, 0.079, 0.500});
+	set_patch(this, 30, (float[]){0.000, 0.500, 0.000, 0.000, 0.240, 0.580, 0.630, 0.000, 0.000, 0.500, 0.000, 0.600, 0.500, 0.816, 0.243, 0.500});
+	set_patch(this, 31, (float[]){0.000, 0.355, 0.350, 0.000, 0.105, 0.000, 0.000, 0.200, 0.500, 0.500, 0.000, 0.645, 0.500, 1.000, 0.296, 0.500});
+}
+
 static Synth *init(const SynthType *type)
 {
 	Dx10 *this = malloc(sizeof(Dx10));
@@ -382,44 +397,11 @@ static Synth *init(const SynthType *type)
 		.generate = generate
 	};
 
-	int i = 0;
-	fill_program(this, i++, 0.000f, 0.650f, 0.441f, 0.842f, 0.329f, 0.230f, 0.800f, 0.050f, 0.800f, 0.900f, 0.000f, 0.500f, 0.500f, 0.447f, 0.000f, 0.414f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.100f, 0.671f, 0.000f, 0.441f, 0.336f, 0.243f, 0.800f, 0.500f, 0.000f, 0.500f, 0.500f, 0.178f, 0.000f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.700f, 0.400f, 0.230f, 0.184f, 0.270f, 0.474f, 0.224f, 0.800f, 0.974f, 0.250f, 0.500f, 0.500f, 0.428f, 0.836f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.700f, 0.400f, 0.320f, 0.217f, 0.599f, 0.670f, 0.309f, 0.800f, 0.500f, 0.263f, 0.507f, 0.500f, 0.276f, 0.638f, 0.526f);
-	fill_program(this, i++, 0.400f, 0.600f, 0.650f, 0.760f, 0.000f, 0.390f, 0.250f, 0.160f, 0.900f, 0.500f, 0.362f, 0.500f, 0.500f, 0.401f, 0.296f, 0.493f);
-	fill_program(this, i++, 0.000f, 0.342f, 0.000f, 0.280f, 0.000f, 0.880f, 0.100f, 0.408f, 0.740f, 0.000f, 0.000f, 0.600f, 0.500f, 0.842f, 0.651f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.400f, 0.100f, 0.360f, 0.000f, 0.875f, 0.160f, 0.592f, 0.800f, 0.500f, 0.000f, 0.500f, 0.500f, 0.303f, 0.868f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.704f, 0.230f, 0.000f, 0.151f, 0.750f, 0.493f, 0.770f, 0.500f, 0.000f, 0.400f, 0.500f, 0.421f, 0.632f, 0.500f);
-	fill_program(this, i++, 0.600f, 0.990f, 0.400f, 0.320f, 0.283f, 0.570f, 0.300f, 0.050f, 0.240f, 0.500f, 0.138f, 0.500f, 0.500f, 0.283f, 0.822f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.650f, 0.368f, 0.651f, 0.395f, 0.550f, 0.257f, 0.900f, 0.500f, 0.300f, 0.800f, 0.500f, 0.000f, 0.414f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.700f, 0.520f, 0.230f, 0.197f, 0.520f, 0.720f, 0.280f, 0.730f, 0.500f, 0.250f, 0.500f, 0.500f, 0.336f, 0.428f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.240f, 0.000f, 0.390f, 0.000f, 0.880f, 0.100f, 0.600f, 0.740f, 0.500f, 0.000f, 0.500f, 0.500f, 0.526f, 0.480f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.700f, 0.160f, 0.000f, 0.158f, 0.349f, 0.000f, 0.280f, 0.900f, 0.000f, 0.618f, 0.500f, 0.401f, 0.000f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.100f, 0.390f, 0.000f, 0.490f, 0.250f, 0.250f, 0.800f, 0.500f, 0.000f, 0.500f, 0.500f, 0.263f, 0.145f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.300f, 0.507f, 0.480f, 0.730f, 0.000f, 0.100f, 0.303f, 0.730f, 1.000f, 0.000f, 0.600f, 0.500f, 0.579f, 0.000f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.300f, 0.500f, 0.320f, 0.000f, 0.467f, 0.079f, 0.158f, 0.500f, 0.500f, 0.000f, 0.400f, 0.500f, 0.151f, 0.020f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.990f, 0.100f, 0.230f, 0.000f, 0.000f, 0.200f, 0.450f, 0.800f, 0.000f, 0.112f, 0.600f, 0.500f, 0.711f, 0.000f, 0.401f);
-	fill_program(this, i++, 0.280f, 0.990f, 0.280f, 0.230f, 0.000f, 0.180f, 0.400f, 0.300f, 0.800f, 0.500f, 0.000f, 0.400f, 0.500f, 0.217f, 0.480f, 0.500f);
-	fill_program(this, i++, 0.220f, 0.990f, 0.250f, 0.170f, 0.000f, 0.240f, 0.310f, 0.257f, 0.900f, 0.757f, 0.000f, 0.500f, 0.500f, 0.697f, 0.803f, 0.500f);
-	fill_program(this, i++, 0.220f, 0.990f, 0.250f, 0.450f, 0.070f, 0.240f, 0.310f, 0.360f, 0.900f, 0.500f, 0.211f, 0.500f, 0.500f, 0.184f, 0.000f, 0.414f);
-	fill_program(this, i++, 0.697f, 0.990f, 0.421f, 0.230f, 0.138f, 0.750f, 0.390f, 0.513f, 0.800f, 0.316f, 0.467f, 0.678f, 0.500f, 0.743f, 0.757f, 0.487f);
-	fill_program(this, i++, 0.000f, 0.400f, 0.000f, 0.280f, 0.125f, 0.474f, 0.250f, 0.100f, 0.500f, 0.500f, 0.000f, 0.400f, 0.500f, 0.579f, 0.592f, 0.500f);
-	fill_program(this, i++, 0.230f, 0.500f, 0.100f, 0.395f, 0.000f, 0.388f, 0.092f, 0.250f, 0.150f, 0.500f, 0.200f, 0.200f, 0.500f, 0.178f, 0.822f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.600f, 0.400f, 0.230f, 0.000f, 0.450f, 0.320f, 0.050f, 0.900f, 0.500f, 0.000f, 0.200f, 0.500f, 0.520f, 0.105f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.600f, 0.400f, 0.170f, 0.145f, 0.290f, 0.350f, 0.100f, 0.900f, 0.500f, 0.000f, 0.400f, 0.500f, 0.441f, 0.309f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.600f, 0.490f, 0.170f, 0.151f, 0.099f, 0.400f, 0.000f, 0.900f, 0.500f, 0.000f, 0.400f, 0.500f, 0.118f, 0.013f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.600f, 0.100f, 0.320f, 0.000f, 0.350f, 0.670f, 0.100f, 0.150f, 0.500f, 0.000f, 0.200f, 0.500f, 0.303f, 0.730f, 0.500f);
-	fill_program(this, i++, 0.300f, 0.500f, 0.400f, 0.280f, 0.000f, 0.180f, 0.540f, 0.000f, 0.700f, 0.500f, 0.000f, 0.400f, 0.500f, 0.296f, 0.033f, 0.500f);
-	fill_program(this, i++, 0.300f, 0.500f, 0.400f, 0.360f, 0.000f, 0.461f, 0.070f, 0.070f, 0.700f, 0.500f, 0.000f, 0.400f, 0.500f, 0.546f, 0.467f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.500f, 0.280f, 0.000f, 0.330f, 0.200f, 0.000f, 0.700f, 0.500f, 0.000f, 0.500f, 0.500f, 0.151f, 0.079f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.500f, 0.000f, 0.000f, 0.240f, 0.580f, 0.630f, 0.000f, 0.000f, 0.500f, 0.000f, 0.600f, 0.500f, 0.816f, 0.243f, 0.500f);
-	fill_program(this, i++, 0.000f, 0.355f, 0.350f, 0.000f, 0.105f, 0.000f, 0.000f, 0.200f, 0.500f, 0.500f, 0.000f, 0.645f, 0.500f, 1.000f, 0.296f, 0.500f);
+	set_patches(this);
 
-	this->Fs = SAMPLE_RATE;
-	this->curProgram = -1 + 5;
+	this->currentPatch = 0;
 
-	for (int i = 0; i < NVOICES; i++) {
+	for (int i = 0; i < NUM_VOICES; i++) {
 		this->voice[i].env = 0.0f;
 		this->voice[i].car = this->voice[i].dcar = 0.0f;
 		this->voice[i].mod0 = this->voice[i].mod1 = this->voice[i].dmod = 0.0f;
@@ -433,7 +415,7 @@ static Synth *init(const SynthType *type)
 	this->sustain = this->activevoices = 0;
 	this->K = 0;
 
-	update(this);
+	update_params(this);
 
 	return &this->base;
 }
