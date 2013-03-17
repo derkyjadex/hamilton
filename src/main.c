@@ -34,7 +34,9 @@ static int run()
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
 					key = event.key.keysym.sym;
-					if (key >= SDLK_0 && key <= SDLK_9) {
+					if (key == SDLK_ESCAPE) {
+						finished = true;
+					} else if (key >= SDLK_0 && key <= SDLK_9) {
 						band_send_note(0, 0, (event.type == SDL_KEYDOWN), key + 12, 1.0);
 					}
 					break;
