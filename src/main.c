@@ -66,9 +66,6 @@ int main(int argc, char *argv[])
 
 	int n;
 	const SynthType *synths = lib_get_synths(&n);
-	for (int i = 0; i < n; i++) {
-		printf("%d: %s\n", i, synths[i].name);
-	}
 
 	error = band_set_channel_synth(0, &synths[0]);
 	if (error) goto end;
