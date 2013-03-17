@@ -5,6 +5,7 @@
 #include "audio.h"
 
 int sine_wave_register();
+int mda_dx10_register();
 
 static int run()
 {
@@ -64,10 +65,13 @@ int main(int argc, char *argv[])
 	error = sine_wave_register();
 	if (error) goto end;
 
+	error = mda_dx10_register();
+	if (error) goto end;
+
 	int n;
 	const SynthType *synths = lib_get_synths(&n);
 
-	error = band_set_channel_synth(0, &synths[0]);
+	error = band_set_channel_synth(0, &synths[1]);
 	if (error) goto end;
 
 	error = run();
