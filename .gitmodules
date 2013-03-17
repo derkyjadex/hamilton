@@ -1,0 +1,3 @@
+[submodule "portmidi"]
+	path = portmidi
+	url = git://github.com/derkyjadex/portmidi.git
