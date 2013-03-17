@@ -17,6 +17,14 @@
 		1A65C62716ED304D00C40716 /* sine.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EB16ED2F1900C40716 /* sine.c */; };
 		1A65C62816ED304D00C40716 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EC16ED2F1900C40716 /* main.c */; };
 		1A65C63316F5D49700C40716 /* mda_dx10.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63216F5D49700C40716 /* mda_dx10.c */; };
+		1A65C63B16F63C1C00C40716 /* pmmacosxcm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63716F63C1C00C40716 /* pmmacosxcm.c */; };
+		1A65C63E16F63C3B00C40716 /* ptmacosx_mach.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63D16F63C3B00C40716 /* ptmacosx_mach.c */; };
+		1A65C64116F63C5600C40716 /* pmutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63F16F63C5600C40716 /* pmutil.c */; };
+		1A65C64216F63C5600C40716 /* portmidi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C64016F63C5600C40716 /* portmidi.c */; };
+		1A65C64416F63E2E00C40716 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
+		1A65C64616F63E3B00C40716 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
+		1A65C64E16F641BB00C40716 /* pmmac.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63616F63C1C00C40716 /* pmmac.c */; };
+		1A65C64F16F641BE00C40716 /* finddefault.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63516F63C1C00C40716 /* finddefault.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +50,20 @@
 		1A65C62E16ED393300C40716 /* lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lib.h; sourceTree = "<group>"; };
 		1A65C62F16ED3A1200C40716 /* audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		1A65C63216F5D49700C40716 /* mda_dx10.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mda_dx10.c; sourceTree = "<group>"; };
+		1A65C63516F63C1C00C40716 /* finddefault.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = finddefault.c; path = src/osx/portmidi/finddefault.c; sourceTree = SOURCE_ROOT; };
+		1A65C63616F63C1C00C40716 /* pmmac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pmmac.c; path = portmidi/pm_mac/pmmac.c; sourceTree = SOURCE_ROOT; };
+		1A65C63716F63C1C00C40716 /* pmmacosxcm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pmmacosxcm.c; path = portmidi/pm_mac/pmmacosxcm.c; sourceTree = SOURCE_ROOT; };
+		1A65C63D16F63C3B00C40716 /* ptmacosx_mach.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ptmacosx_mach.c; path = portmidi/porttime/ptmacosx_mach.c; sourceTree = SOURCE_ROOT; };
+		1A65C63F16F63C5600C40716 /* pmutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pmutil.c; path = portmidi/pm_common/pmutil.c; sourceTree = SOURCE_ROOT; };
+		1A65C64016F63C5600C40716 /* portmidi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = portmidi.c; path = portmidi/pm_common/portmidi.c; sourceTree = SOURCE_ROOT; };
+		1A65C64316F63E2E00C40716 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = /System/Library/Frameworks/CoreMIDI.framework; sourceTree = "<absolute>"; };
+		1A65C64516F63E3B00C40716 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
+		1A65C64716F63F1E00C40716 /* pmmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pmmac.h; path = portmidi/pm_mac/pmmac.h; sourceTree = SOURCE_ROOT; };
+		1A65C64816F63F1E00C40716 /* pmmacosxcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pmmacosxcm.h; path = portmidi/pm_mac/pmmacosxcm.h; sourceTree = SOURCE_ROOT; };
+		1A65C64A16F63F3A00C40716 /* porttime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = porttime.h; path = portmidi/porttime/porttime.h; sourceTree = SOURCE_ROOT; };
+		1A65C64B16F63F5B00C40716 /* pminternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pminternal.h; path = portmidi/pm_common/pminternal.h; sourceTree = SOURCE_ROOT; };
+		1A65C64C16F63F5B00C40716 /* pmutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pmutil.h; path = portmidi/pm_common/pmutil.h; sourceTree = SOURCE_ROOT; };
+		1A65C64D16F63F5B00C40716 /* portmidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = portmidi.h; path = portmidi/pm_common/portmidi.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +71,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A65C64616F63E3B00C40716 /* CoreAudio.framework in Frameworks */,
+				1A65C64416F63E2E00C40716 /* CoreMIDI.framework in Frameworks */,
 				1A65C61D16ED2FE200C40716 /* SDL.framework in Frameworks */,
 				1A65C60216ED2FB000C40716 /* Cocoa.framework in Frameworks */,
 			);
@@ -71,6 +95,7 @@
 		1A65C5E316ED2EA800C40716 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				1A65C63416F63B8B00C40716 /* portmidi */,
 				1A65C5E616ED2F1900C40716 /* audio.c */,
 				1A65C5E716ED2F1900C40716 /* band.c */,
 				1A65C5E816ED2F1900C40716 /* lib.c */,
@@ -108,9 +133,11 @@
 		1A65C60016ED2FB000C40716 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C61C16ED2FE200C40716 /* SDL.framework */,
 				1A65C60116ED2FB000C40716 /* Cocoa.framework */,
+				1A65C64516F63E3B00C40716 /* CoreAudio.framework */,
+				1A65C64316F63E2E00C40716 /* CoreMIDI.framework */,
 				1A65C60316ED2FB000C40716 /* Other Frameworks */,
+				1A65C61C16ED2FE200C40716 /* SDL.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -141,6 +168,25 @@
 				1A65C62A16ED30E700C40716 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		1A65C63416F63B8B00C40716 /* portmidi */ = {
+			isa = PBXGroup;
+			children = (
+				1A65C63516F63C1C00C40716 /* finddefault.c */,
+				1A65C64B16F63F5B00C40716 /* pminternal.h */,
+				1A65C63616F63C1C00C40716 /* pmmac.c */,
+				1A65C64716F63F1E00C40716 /* pmmac.h */,
+				1A65C63716F63C1C00C40716 /* pmmacosxcm.c */,
+				1A65C64816F63F1E00C40716 /* pmmacosxcm.h */,
+				1A65C63F16F63C5600C40716 /* pmutil.c */,
+				1A65C64C16F63F5B00C40716 /* pmutil.h */,
+				1A65C64016F63C5600C40716 /* portmidi.c */,
+				1A65C64D16F63F5B00C40716 /* portmidi.h */,
+				1A65C64A16F63F3A00C40716 /* porttime.h */,
+				1A65C63D16F63C3B00C40716 /* ptmacosx_mach.c */,
+			);
+			name = portmidi;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,6 +257,12 @@
 				1A65C62716ED304D00C40716 /* sine.c in Sources */,
 				1A65C62816ED304D00C40716 /* main.c in Sources */,
 				1A65C63316F5D49700C40716 /* mda_dx10.c in Sources */,
+				1A65C63B16F63C1C00C40716 /* pmmacosxcm.c in Sources */,
+				1A65C63E16F63C3B00C40716 /* ptmacosx_mach.c in Sources */,
+				1A65C64116F63C5600C40716 /* pmutil.c in Sources */,
+				1A65C64216F63C5600C40716 /* portmidi.c in Sources */,
+				1A65C64E16F641BB00C40716 /* pmmac.c in Sources */,
+				1A65C64F16F641BE00C40716 /* finddefault.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,7 +315,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = include;
+				USER_HEADER_SEARCH_PATHS = "include portmidi/pm_common portmidi/porttime";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -295,7 +347,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = include;
+				USER_HEADER_SEARCH_PATHS = "include portmidi/pm_common portmidi/porttime";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
