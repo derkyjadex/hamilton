@@ -72,7 +72,7 @@ const char **band_get_channel_controls(int channel, int *numControls)
 	return synth->getControls(synth, numControls);
 }
 
-float *band_get_channel_control(int channel, const char *control)
+float band_get_channel_control(int channel, int control)
 {
 	Synth *synth = synths[channel];
 	return synth->getControl(synth, control);
@@ -97,7 +97,7 @@ static void process_message()
 			break;
 
 		case CONTROL:
-			*message->data.control.ptr = message->data.control.value;
+			synth->setControl(synth, message->data.control.control, message->data.control.value);
 			break;
 	}
 }

@@ -211,10 +211,13 @@ static const char **get_controls(Synth *base, int *numControls)
 	return controls;
 }
 
-static float *get_control(Synth *base, const char *control)
+static float get_control(Synth *base, int control)
 {
-	return NULL;
+	return 0;
 }
+
+static void set_control(Synth *base, int control, float value)
+{ }
 
 static float midi_to_freq(int note)
 {
@@ -278,6 +281,7 @@ static Synth *init(const SynthType *type)
 		.free = free_synth,
 		.getControls = get_controls,
 		.getControl = get_control,
+		.setControl = set_control,
 		.startNote = start_note,
 		.stopNote = stop_note,
 		.generate = generate

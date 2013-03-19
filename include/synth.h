@@ -17,7 +17,8 @@ struct Synth {
 	void (*free)(Synth *synth);
 
 	const char **(*getControls)(Synth *synth, int *numControls);
-	float *(*getControl)(Synth *synth, const char *control);
+	float (*getControl)(Synth *synth, int control);
+	void (*setControl)(Synth *synth, int control, float value);
 
 	void (*startNote)(Synth *synth, int num, float velocity);
 	void (*stopNote)(Synth *synth, int num);

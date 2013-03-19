@@ -118,7 +118,7 @@ bool band_send_pitch(uint32_t time, int channel, float offset)
 	return mq_push(&message);
 }
 
-bool band_send_cc(uint32_t time, int channel, float *control, float value)
+bool band_send_cc(uint32_t time, int channel, int control, float value)
 {
 	Message message = {
 		.time = time,
@@ -126,7 +126,7 @@ bool band_send_cc(uint32_t time, int channel, float *control, float value)
 		.type = CONTROL,
 		.data = {
 			.control = {
-				.ptr = control,
+				.control = control,
 				.value = value
 			}
 		}

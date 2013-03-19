@@ -16,11 +16,11 @@ void band_get_channel_synths(const SynthType *types[NUM_CHANNELS]);
 int band_set_channel_synth(int channel, const SynthType *type);
 
 const char **band_get_channel_controls(int channel, int *numControls);
-float *band_get_channel_control(int channel, const char *control);
+float band_get_channel_control(int channel, int control);
 void band_run(float *buffer, int length);
 
 bool band_send_note(uint32_t time, int channel, bool state, int num, float velocity);
 bool band_send_pitch(uint32_t time, int channel, float offset);
-bool band_send_cc(uint32_t time, int channel, float *control, float value);
+bool band_send_cc(uint32_t time, int channel, int control, float value);
 
 #endif

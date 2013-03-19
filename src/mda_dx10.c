@@ -216,9 +216,19 @@ static const char **get_controls(Synth *base, int *numControls)
 	return controls;
 }
 
-static float *get_control(Synth *base, const char *control)
+static float get_control(Synth *base, int control)
 {
-	return NULL;
+	Dx10 *this = (Dx10 *)base;
+
+	return this->patches[this->currentPatch].controls[control];
+}
+
+static void set_control(Synth *base, int control, float value)
+{
+	Dx10 *this = (Dx10 *)base;
+
+	this->patches[this->currentPatch].controls[control] = value;
+	update_params(this);
 }
 
 static void generate(Synth *base, float *output, int samples)
@@ -346,6 +356,7 @@ static Synth *init(const SynthType *type)
 		.free = free_synth,
 		.getControls = get_controls,
 		.getControl = get_control,
+		.setControl = set_control,
 		.startNote = start_note,
 		.stopNote = stop_note,
 		.generate = generate

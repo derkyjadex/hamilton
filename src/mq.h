@@ -20,7 +20,7 @@ typedef struct {
 			float offset;
 		} pitch;
 		struct {
-			float *ptr;
+			int control;
 			float value;
 		} control;
 	} data;
