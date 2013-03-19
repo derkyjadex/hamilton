@@ -90,6 +90,10 @@ static int run()
 					case 0x9:
 						band_send_note(0, channel, true, data1, data2 / 127.0);
 						break;
+
+					case 0xB:
+						band_send_cc(0, channel, data1, data2 / 127.0);
+						break;
 				}
 			}
 		}
