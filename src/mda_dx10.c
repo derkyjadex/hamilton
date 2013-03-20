@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdint.h>
 
 #include "synth.h"
 #include "band.h"
@@ -66,7 +65,7 @@ struct Patch {
 };
 
 struct Voice {
-	int32_t note;
+	int note;
 
 	struct {
 		float phase;
@@ -100,10 +99,10 @@ typedef struct Dx10 {
 	int currentPatch;
 
 	struct Voice voices[NUM_VOICES];
-	int32_t activevoices;
+	int activevoices;
 
 	bool sustain;
-	int32_t k;
+	int k;
 
 	float tune, rati, ratf, ratio; //modulator ratio
 	float catt, cdec, crel;        //carrier envelope
@@ -126,7 +125,7 @@ void update_params(Dx10 *this)
 		this->ratf = 0.2f * controls[4] * controls[4];
 
 	} else {
-		switch((int32_t)(8.9f * controls[4])) {
+		switch((int)(8.9f * controls[4])) {
 			case  4: this->ratf = 0.25f;       break;
 			case  5: this->ratf = 0.33333333f; break;
 			case  6: this->ratf = 0.50f;       break;
@@ -251,7 +250,7 @@ static void generate(Synth *base, float *output, int samples)
 	float mw = this->mw;
 	float rich = this->rich;
 	float modmix = this->modmix;
-	int32_t k = this->k;
+	int k = this->k;
 
 	this->activevoices = NUM_VOICES;
 	for (int i = 0; i < NUM_VOICES; i++) {
