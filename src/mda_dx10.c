@@ -57,8 +57,11 @@ static const char *controls[] = {
 const int NUM_CONTROLS = 16;
 const int NUM_PATCHES = 32;
 const int NUM_VOICES = 8;
-const float SILENCE = 0.0003;
-const int SUSTAIN = 128;
+const float SILENCE = 0.0003f;
+const int SUSTAIN_NOTE = 128;
+
+const float MIDI_TO_FREQ_1 = 8.175798915644f;
+const float MIDI_TO_FREQ_2 = 0.05776226505f;
 
 struct Patch {
 	float controls[NUM_CONTROLS];
@@ -129,7 +132,7 @@ void update_params(Dx10 *this)
 	const float SAMPLE_TIME = 1.0f / SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;
 
-	this->tune = 8.175798915644 * SAMPLE_TIME * powf(2.0, floorf(controls[11] * 6.9) - 2.0);
+	this->tune = MIDI_TO_FREQ_1 * SAMPLE_TIME * powf(2.0f, floorf(controls[11] * 6.9f) - 2.0f);
 
 	float ratio = floorf(40.1f * controls[3] * controls[3]);
 
@@ -138,11 +141,11 @@ void update_params(Dx10 *this)
 
 	} else {
 		switch((int)(8.9f * controls[4])) {
-			case  4: ratio += 0.25f;       break;
-			case  5: ratio += 0.33333333f; break;
-			case  6: ratio += 0.50f;       break;
-			case  7: ratio += 0.66666667f; break;
-			default: ratio += 0.75f;
+			case  4: ratio += 3.0 / 12.0; break;
+			case  5: ratio += 4.0 / 12.0; break;
+			case  6: ratio += 6.0 / 12.0; break;
+			case  7: ratio += 8.0 / 12.0; break;
+			default: ratio += 9.0 / 12.0;
 		}
 	}
 
@@ -153,17 +156,17 @@ void update_params(Dx10 *this)
 	this->velsens = controls[9];
 	this->lfo.vibrato = 0.001f * controls[10] * controls[10];
 
-	this->env.attack = 1.0f - expf(-SAMPLE_TIME * expf(8.0 - 8.0 * controls[0]));
+	this->env.attack = 1.0f - expf(-SAMPLE_TIME * expf(8.0f - 8.0f * controls[0]));
 
 	if(controls[1] > 0.98f) {
 		this->env.decay = 1.0f;
 	} else {
-		this->env.decay = expf(-SAMPLE_TIME * expf(5.0 - 8.0 * controls[1]));
+		this->env.decay = expf(-SAMPLE_TIME * expf(5.0f - 8.0f * controls[1]));
 	}
 
-	this->env.release =        expf(-SAMPLE_TIME * expf(5.0 - 5.0 * controls[2]));
-	this->mod.decay =   1.0f - expf(-SAMPLE_TIME * expf(6.0 - 7.0 * controls[6]));
-	this->mod.release = 1.0f - expf(-SAMPLE_TIME * expf(5.0 - 8.0 * controls[8]));
+	this->env.release =        expf(-SAMPLE_TIME * expf(5.0f - 5.0f * controls[2]));
+	this->mod.decay =   1.0f - expf(-SAMPLE_TIME * expf(6.0f - 7.0f * controls[6]));
+	this->mod.release = 1.0f - expf(-SAMPLE_TIME * expf(5.0f - 8.0f * controls[8]));
 
 	this->waveform = 0.50f - 3.0f * controls[13] * controls[13];
 	this->modmix = 0.25f * controls[14] * controls[14];
@@ -192,27 +195,27 @@ static void start_note(Synth *base, int note, float velocity)
 	float *controls = this->patches[this->currentPatch].controls;
 	struct Voice *voice = find_next_voice(this);
 
-	float delta = expf(0.05776226505f * ((float)note + 2 * controls[12] - 1.0f));
+	float delta = expf(MIDI_TO_FREQ_2 * ((float)note + 2.0f * controls[12] - 1.0f));
 	voice->note = note;
-	voice->carrier.phase = 0;
+	voice->carrier.phase = 0.0f;
 	voice->carrier.delta = this->tune * this->pbend * delta;
 
-	if (delta > 50) delta = 50; //key tracking
+	if (delta > 50.0f) delta = 50.0f; //key tracking
 
-	float depth = delta * (64.0f + this->velsens * (velocity * 127 - 64));
+	float depth = delta * (64.0f + this->velsens * (velocity * 127.0f - 64.0f));
 	voice->modEnv.level = this->mod.initDepth * depth;
 	voice->modEnv.target = this->mod.susDepth * depth;
 	voice->modEnv.decay = this->mod.decay;
 
-	voice->mod.d = this->mod.ratio * voice->carrier.delta;
-	voice->mod.x0 = 0;
-	voice->mod.x1 = sinf(voice->mod.d);
-	voice->mod.d = 2 * cosf(voice->mod.d);
+	float modDelta = this->mod.ratio * voice->carrier.delta;
+	voice->mod.x0 = 0.0f;
+	voice->mod.x1 = sinf(modDelta);
+	voice->mod.d = 2.0f * cosf(modDelta);
 
 	//scale volume with richness
-	voice->env.x = (1.5f - controls[13]) * this->volume * (velocity * 127 + 10);
+	voice->env.x = (1.5f - controls[13]) * this->volume * (velocity * 127.0f + 10.0f);
 	voice->env.attack = this->env.attack;
-	voice->env.level = 0;
+	voice->env.level = 0.0f;
 	voice->env.decay = this->env.decay;
 }
 
@@ -227,12 +230,12 @@ static void stop_note(Synth *base, int note)
 			if (!this->sustain) {
 				voice->env.decay = this->env.release; //release phase
 				voice->env.x = voice->env.level;
-				voice->env.attack = 1;
-				voice->modEnv.target = 0;
+				voice->env.attack = 1.0f;
+				voice->modEnv.target = 0.0f;
 				voice->modEnv.decay = this->mod.release;
 
 			} else {
-				voice->note = SUSTAIN;
+				voice->note = SUSTAIN_NOTE;
 			}
 		}
 	}
@@ -292,7 +295,7 @@ static void generate(Synth *base, float *output, int samples)
 		return;
 
 	while (--samples >= 0) {
-		float out = 0;
+		float out = 0.0f;
 
 		if(--k < 0) {
 			this->lfo.x0 += this->lfo.d * this->lfo.x1; //sine LFO
@@ -317,12 +320,12 @@ static void generate(Synth *base, float *output, int samples)
 			voice->modEnv.level += voice->modEnv.decay * (voice->modEnv.target - voice->modEnv.level);
 
 			float phase = voice->carrier.phase + voice->carrier.delta + mod * voice->modEnv.level + mw;
-			while (phase >  1) phase -= 2;
-			while (phase < -1) phase += 2;
+			while (phase >  1.0f) phase -= 2.0f;
+			while (phase < -1.0f) phase += 2.0f;
 			voice->carrier.phase = phase;
 
 			float x = phase;
-			float wave = x + x * x * x * (waveform * x * x - waveform - 1);
+			float wave = x + x * x * x * (waveform * x * x - waveform - 1.0f);
 
 			out += voice->env.level * (modmix * voice->mod.x1 + wave);
 		}
@@ -403,7 +406,7 @@ static Synth *init(const SynthType *type)
 
 	set_patches(this);
 
-	this->currentPatch = 5;
+	this->currentPatch = 0;
 
 	for (int i = 0; i < NUM_VOICES; i++) {
 		this->voices[i] = (struct Voice){
@@ -418,7 +421,7 @@ static Synth *init(const SynthType *type)
 				.x1 = 0
 			},
 			.env = {
-				.decay = 0.99
+				.decay = 0.99f
 			}
 		};
 	}
@@ -427,9 +430,9 @@ static Synth *init(const SynthType *type)
 	this->sustain = false;
 	this->lfo.k = 0;
 
-	this->lfo.x0 = this->lfo.d = this->modwhl = 0;
-	this->lfo.x1 = this->pbend = 1;
-	this->volume = 0.0035;
+	this->lfo.x0 = this->lfo.d = this->modwhl = 0.0f;
+	this->lfo.x1 = this->pbend = 1.0f;
+	this->volume = 0.0035f;
 
 	update_params(this);
 
