@@ -170,22 +170,27 @@ void update_params(Dx10 *this)
 	this->lfo.d = 628.3f * SAMPLE_TIME * 25.0f * controls[15] * controls[15]; //these params not in original DX10
 }
 
-static void start_note(Synth *base, int note, float velocity)
+static struct Voice *find_next_voice(Dx10 *this)
 {
-	Dx10 *this = (Dx10 *)base;
-
-	float *controls = this->patches[this->currentPatch].controls;
-
 	float level = 1;
 	struct Voice *voice;
 
-	//find quietest voice
 	for (int i = 0; i < NUM_VOICES; i++) {
 		if (this->voices[i].env.x < level) {
 			level = this->voices[i].env.x;
 			voice = &this->voices[i];
 		}
 	}
+
+	return voice;
+}
+
+static void start_note(Synth *base, int note, float velocity)
+{
+	Dx10 *this = (Dx10 *)base;
+
+	float *controls = this->patches[this->currentPatch].controls;
+	struct Voice *voice = find_next_voice(this);
 
 	float delta = expf(0.05776226505f * ((float)note + 2 * controls[12] - 1.0f));
 	voice->note = note;
@@ -254,16 +259,10 @@ static void set_control(Synth *base, int control, float value)
 	update_params(this);
 }
 
-static void generate(Synth *base, float *output, int samples)
+static void update_voices(Dx10 *this)
 {
-	Dx10 *this = (Dx10 *)base;
-
-	float mw = this->lfo.mw;
-	float waveform = this->waveform;
-	float modmix = this->modmix;
-	int k = this->lfo.k;
-
 	this->activevoices = NUM_VOICES;
+
 	for (int i = 0; i < NUM_VOICES; i++) {
 		if (this->voices[i].env.x < SILENCE) {
 			this->voices[i].env.x = 0;
@@ -276,6 +275,18 @@ static void generate(Synth *base, float *output, int samples)
 			this->voices[i].modEnv.target = 0;
 		}
 	}
+}
+
+static void generate(Synth *base, float *output, int samples)
+{
+	Dx10 *this = (Dx10 *)base;
+
+	float mw = this->lfo.mw;
+	float waveform = this->waveform;
+	float modmix = this->modmix;
+	int k = this->lfo.k;
+
+	update_voices(this);
 
 	if (this->activevoices == 0)
 		return;
