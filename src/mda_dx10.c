@@ -57,7 +57,7 @@ static const char *controls[] = {
 const int NUM_CONTROLS = 16;
 const int NUM_PATCHES = 32;
 const int NUM_VOICES = 8;
-const int SILENCE = 0.0003f;  //voice choking
+const float SILENCE = 0.0003;
 const int SUSTAIN = 128;
 
 struct Patch {
