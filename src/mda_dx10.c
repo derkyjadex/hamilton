@@ -129,10 +129,10 @@ void update_params(Dx10 *this)
 	const float ifs = 1.0f / SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;
 
-	this->tune = (float)(8.175798915644 * ifs * pow(2.0, floor(controls[11] * 6.9) - 2.0));
+	this->tune = 8.175798915644 * ifs * powf(2.0, floorf(controls[11] * 6.9) - 2.0);
 
 	float rati = controls[3];
-	rati = (float)floor(40.1f * rati * rati);
+	rati = floorf(40.1f * rati * rati);
 
 	float ratf;
 	if (controls[4] < 0.5f) {
@@ -156,17 +156,17 @@ void update_params(Dx10 *this)
 	this->velsens = controls[9];
 	this->lfo.vibrato = 0.001f * controls[10] * controls[10];
 
-	this->env.attack = 1.0f - (float)exp(-ifs * exp(8.0 - 8.0 * controls[0]));
+	this->env.attack = 1.0f - expf(-ifs * expf(8.0 - 8.0 * controls[0]));
 
 	if(controls[1]>0.98f) {
 		this->env.decay = 1.0f;
 	} else {
-		this->env.decay = (float)exp(-ifs * exp(5.0 - 8.0 * controls[1]));
+		this->env.decay = expf(-ifs * expf(5.0 - 8.0 * controls[1]));
 	}
 
-	this->env.release =        (float)exp(-ifs * exp(5.0 - 5.0 * controls[2]));
-	this->mod.decay = 1.0f - (float)exp(-ifs * exp(6.0 - 7.0 * controls[6]));
-	this->mod.release = 1.0f - (float)exp(-ifs * exp(5.0 - 8.0 * controls[8]));
+	this->env.release =        expf(-ifs * expf(5.0 - 5.0 * controls[2]));
+	this->mod.decay = 1.0f - expf(-ifs * expf(6.0 - 7.0 * controls[6]));
+	this->mod.release = 1.0f - expf(-ifs * expf(5.0 - 8.0 * controls[8]));
 
 	this->waveform = 0.50f - 3.0f * controls[13] * controls[13];
 	this->modmix = 0.25f * controls[14] * controls[14];
@@ -190,7 +190,7 @@ static void start_note(Synth *base, int note, float velocity)
 		}
 	}
 
-	level = (float)exp(0.05776226505f * ((float)note + controls[12] + controls[12] - 1.0f));
+	level = expf(0.05776226505f * ((float)note + controls[12] + controls[12] - 1.0f));
 	voice->note = note;                         //fine tuning
 	voice->carrier.phase = 0;
 	voice->carrier.delta = this->tune * this->pbend * level; //pitch bend not updated during note as a bit tricky...
