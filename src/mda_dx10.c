@@ -126,51 +126,48 @@ typedef struct Dx10 {
 
 void update_params(Dx10 *this)
 {
-	const float ifs = 1.0f / SAMPLE_RATE;
+	const float SAMPLE_TIME = 1.0f / SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;
 
-	this->tune = 8.175798915644 * ifs * powf(2.0, floorf(controls[11] * 6.9) - 2.0);
+	this->tune = 8.175798915644 * SAMPLE_TIME * powf(2.0, floorf(controls[11] * 6.9) - 2.0);
 
-	float rati = controls[3];
-	rati = floorf(40.1f * rati * rati);
+	float ratio = floorf(40.1f * controls[3] * controls[3]);
 
-	float ratf;
 	if (controls[4] < 0.5f) {
-		ratf = 0.2f * controls[4] * controls[4];
+		ratio += 0.2f * controls[4] * controls[4];
 
 	} else {
 		switch((int)(8.9f * controls[4])) {
-			case  4: ratf = 0.25f;       break;
-			case  5: ratf = 0.33333333f; break;
-			case  6: ratf = 0.50f;       break;
-			case  7: ratf = 0.66666667f; break;
-			default: ratf = 0.75f;
+			case  4: ratio += 0.25f;       break;
+			case  5: ratio += 0.33333333f; break;
+			case  6: ratio += 0.50f;       break;
+			case  7: ratio += 0.66666667f; break;
+			default: ratio += 0.75f;
 		}
 	}
 
-	this->mod.ratio = 1.570796326795f * (rati + ratf);
-
+	this->mod.ratio = 1.570796326795f * ratio;
 	this->mod.initDepth = 0.0002f * controls[5] * controls[5];
 	this->mod.susDepth = 0.0002f * controls[7] * controls[7];
 
 	this->velsens = controls[9];
 	this->lfo.vibrato = 0.001f * controls[10] * controls[10];
 
-	this->env.attack = 1.0f - expf(-ifs * expf(8.0 - 8.0 * controls[0]));
+	this->env.attack = 1.0f - expf(-SAMPLE_TIME * expf(8.0 - 8.0 * controls[0]));
 
-	if(controls[1]>0.98f) {
+	if(controls[1] > 0.98f) {
 		this->env.decay = 1.0f;
 	} else {
-		this->env.decay = expf(-ifs * expf(5.0 - 8.0 * controls[1]));
+		this->env.decay = expf(-SAMPLE_TIME * expf(5.0 - 8.0 * controls[1]));
 	}
 
-	this->env.release =        expf(-ifs * expf(5.0 - 5.0 * controls[2]));
-	this->mod.decay = 1.0f - expf(-ifs * expf(6.0 - 7.0 * controls[6]));
-	this->mod.release = 1.0f - expf(-ifs * expf(5.0 - 8.0 * controls[8]));
+	this->env.release =        expf(-SAMPLE_TIME * expf(5.0 - 5.0 * controls[2]));
+	this->mod.decay =   1.0f - expf(-SAMPLE_TIME * expf(6.0 - 7.0 * controls[6]));
+	this->mod.release = 1.0f - expf(-SAMPLE_TIME * expf(5.0 - 8.0 * controls[8]));
 
 	this->waveform = 0.50f - 3.0f * controls[13] * controls[13];
 	this->modmix = 0.25f * controls[14] * controls[14];
-	this->lfo.d = 628.3f * ifs * 25.0f * controls[15] * controls[15]; //these params not in original DX10
+	this->lfo.d = 628.3f * SAMPLE_TIME * 25.0f * controls[15] * controls[15]; //these params not in original DX10
 }
 
 static void start_note(Synth *base, int note, float velocity)
@@ -190,19 +187,19 @@ static void start_note(Synth *base, int note, float velocity)
 		}
 	}
 
-	level = expf(0.05776226505f * ((float)note + controls[12] + controls[12] - 1.0f));
-	voice->note = note;                         //fine tuning
+	float delta = expf(0.05776226505f * ((float)note + 2 * controls[12] - 1.0f));
+	voice->note = note;
 	voice->carrier.phase = 0;
-	voice->carrier.delta = this->tune * this->pbend * level; //pitch bend not updated during note as a bit tricky...
+	voice->carrier.delta = this->tune * this->pbend * delta;
 
-	if (level > 50) level = 50; //key tracking
+	if (delta > 50) delta = 50; //key tracking
 
-	level *= (64.0f + this->velsens * (velocity * 127 - 64)); //vel sens
-	voice->modEnv.level = this->mod.initDepth * level;
-	voice->modEnv.target = this->mod.susDepth * level;
+	float depth = delta * (64.0f + this->velsens * (velocity * 127 - 64));
+	voice->modEnv.level = this->mod.initDepth * depth;
+	voice->modEnv.target = this->mod.susDepth * depth;
 	voice->modEnv.decay = this->mod.decay;
 
-	voice->mod.d = this->mod.ratio * voice->carrier.delta; //sine oscillator
+	voice->mod.d = this->mod.ratio * voice->carrier.delta;
 	voice->mod.x0 = 0;
 	voice->mod.x1 = sinf(voice->mod.d);
 	voice->mod.d = 2 * cosf(voice->mod.d);
@@ -262,7 +259,7 @@ static void generate(Synth *base, float *output, int samples)
 	Dx10 *this = (Dx10 *)base;
 
 	float mw = this->lfo.mw;
-	float rich = this->waveform;
+	float waveform = this->waveform;
 	float modmix = this->modmix;
 	int k = this->lfo.k;
 
@@ -314,9 +311,9 @@ static void generate(Synth *base, float *output, int samples)
 			voice->carrier.phase = phase;
 
 			float x = phase;
-			float waveform = x + x * x * x * (rich * x * x - rich - 1);
+			float wave = x + x * x * x * (waveform * x * x - waveform - 1);
 
-			out += voice->env.level * (modmix * voice->mod.x1 + waveform);
+			out += voice->env.level * (modmix * voice->mod.x1 + wave);
 		}
 
 		*output++ += out;
