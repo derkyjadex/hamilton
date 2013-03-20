@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2013 James Deery
+ * Released under the MIT license <http://opensource.org/licenses/MIT>.
+ * See COPYING for details.
+ */
+
 #include <string.h>
 
 #include "lib.h"
