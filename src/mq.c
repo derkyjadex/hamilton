@@ -140,3 +140,17 @@ bool band_send_cc(uint32_t time, int channel, int control, float value)
 
 	return mq_push(&message);
 }
+
+bool band_send_patch(uint32_t time, int channel, int patch)
+{
+	Message message = {
+		.time = time,
+		.channel = channel,
+		.type = PATCH,
+		.data = {
+			.patch = patch
+		}
+	};
+
+	return mq_push(&message);
+}

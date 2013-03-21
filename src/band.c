@@ -105,6 +105,10 @@ static void process_message()
 		case CONTROL:
 			synth->setControl(synth, message->data.control.control, message->data.control.value);
 			break;
+
+		case PATCH:
+			synth->setPatch(synth, message->data.patch);
+			break;
 	}
 }
 

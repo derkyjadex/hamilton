@@ -28,5 +28,6 @@ void band_run(float *buffer, int length);
 bool band_send_note(uint32_t time, int channel, bool state, int num, float velocity);
 bool band_send_pitch(uint32_t time, int channel, float offset);
 bool band_send_cc(uint32_t time, int channel, int control, float value);
+bool band_send_patch(uint32_t time, int channel, int patch);
 
 #endif

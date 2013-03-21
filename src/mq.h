@@ -10,7 +10,8 @@ typedef enum {
 	NOTE_OFF = 0,
 	NOTE_ON = 1,
 	PITCH,
-	CONTROL
+	CONTROL,
+	PATCH
 } MessageType;
 
 typedef struct {
@@ -29,6 +30,7 @@ typedef struct {
 			int control;
 			float value;
 		} control;
+		int patch;
 	} data;
 } Message;
 
