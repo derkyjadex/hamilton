@@ -35,7 +35,7 @@ static int run()
         const PmDeviceInfo *device = Pm_GetDeviceInfo(i);
         if (device->input) {
             Pm_OpenInput(&midi, i, NULL, 265, NULL, NULL);
-            Pm_SetFilter(midi,  ~PM_FILT_NOTE & ~PM_FILT_CONTROL);
+            Pm_SetFilter(midi,  ~PM_FILT_NOTE & ~PM_FILT_CONTROL & ~PM_FILT_PROGRAM);
             PmEvent event;
             while (Pm_Poll(midi)) {
                 Pm_Read(midi, &event, 1);
@@ -99,6 +99,10 @@ static int run()
 
 					case 0xB:
 						band_send_cc(0, channel, data1, data2 / 127.0);
+						break;
+
+					case 0xC:
+						band_send_patch(0, channel, data1);
 						break;
 				}
 			}
