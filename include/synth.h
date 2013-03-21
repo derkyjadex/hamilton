@@ -26,8 +26,12 @@ struct Synth {
 	float (*getControl)(Synth *synth, int control);
 	void (*setControl)(Synth *synth, int control, float value);
 
-	void (*startNote)(Synth *synth, int num, float velocity);
-	void (*stopNote)(Synth *synth, int num);
+	int (*getNumPatches)(Synth *synth);
+	void (*setPatch)(Synth *synth, int patch);
+	int (*getPatch)(Synth *synth);
+
+	void (*startNote)(Synth *synth, int note, float velocity);
+	void (*stopNote)(Synth *synth, int note);
 
 	void (*generate)(Synth *synth, float *buffer, int length);
 };
