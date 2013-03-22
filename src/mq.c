@@ -91,7 +91,7 @@ Message *mq_pop()
 	return message;
 }
 
-bool band_send_note(uint32_t time, int channel, bool state, int num, float velocity)
+bool hm_band_send_note(uint32_t time, int channel, bool state, int num, float velocity)
 {
 	Message message = {
 		.time = time,
@@ -108,7 +108,7 @@ bool band_send_note(uint32_t time, int channel, bool state, int num, float veloc
 	return mq_push(&message);
 }
 
-bool band_send_pitch(uint32_t time, int channel, float offset)
+bool hm_band_send_pitch(uint32_t time, int channel, float offset)
 {
 	Message message = {
 		.time = time,
@@ -124,7 +124,7 @@ bool band_send_pitch(uint32_t time, int channel, float offset)
 	return mq_push(&message);
 }
 
-bool band_send_cc(uint32_t time, int channel, int control, float value)
+bool hm_band_send_cc(uint32_t time, int channel, int control, float value)
 {
 	Message message = {
 		.time = time,
@@ -141,7 +141,7 @@ bool band_send_cc(uint32_t time, int channel, int control, float value)
 	return mq_push(&message);
 }
 
-bool band_send_patch(uint32_t time, int channel, int patch)
+bool hm_band_send_patch(uint32_t time, int channel, int patch)
 {
 	Message message = {
 		.time = time,

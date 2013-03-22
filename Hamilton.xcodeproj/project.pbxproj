@@ -81,6 +81,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A554C6216FCF838007ACD72 /* hamilton */ = {
+			isa = PBXGroup;
+			children = (
+				1A65C62F16ED3A1200C40716 /* audio.h */,
+				1A65C62D16ED38B600C40716 /* band.h */,
+				1A65C62C16ED386000C40716 /* lib.h */,
+				1A65C62E16ED393300C40716 /* synth.h */,
+			);
+			path = hamilton;
+			sourceTree = "<group>";
+		};
 		1A65C5DB16ED2E8D00C40716 = {
 			isa = PBXGroup;
 			children = (
@@ -113,10 +124,7 @@
 		1A65C5E416ED2EB000C40716 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C62F16ED3A1200C40716 /* audio.h */,
-				1A65C62D16ED38B600C40716 /* band.h */,
-				1A65C62E16ED393300C40716 /* lib.h */,
-				1A65C62C16ED386000C40716 /* synth.h */,
+				1A554C6216FCF838007ACD72 /* hamilton */,
 			);
 			name = Headers;
 			path = include;

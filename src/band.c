@@ -6,15 +6,15 @@
 
 #include <stdlib.h>
 
-#include "band.h"
-#include "lib.h"
+#include "hamilton/band.h"
+#include "hamilton/lib.h"
 #include "mq.h"
 
-Synth *synths[NUM_CHANNELS];
+HmSynth *synths[NUM_CHANNELS];
 static double time = 0;
 static Message *message = NULL;
 
-int band_init()
+int hm_band_init()
 {
 	int error;
 
@@ -25,7 +25,7 @@ int band_init()
 	time = 0;
 	message = NULL;
 
-	error = lib_init();
+	error = hm_lib_init();
 	if (error) goto end;
 
 	error = mq_init();
@@ -33,22 +33,22 @@ int band_init()
 
 end:
 	if (error) {
-		band_free();
+		hm_band_free();
 	}
 
 	return error;
 }
 
-void band_free()
+void hm_band_free()
 {
-	lib_free();
+	hm_lib_free();
 	mq_free();
 }
 
-void band_get_channel_synths(const SynthType *types[NUM_CHANNELS])
+void hm_band_get_channel_synths(const HmSynthType *types[NUM_CHANNELS])
 {
 	for (int i = 0; i < NUM_CHANNELS; i++) {
-		Synth *synth = synths[i];
+		HmSynth *synth = synths[i];
 		if (synth) {
 			types[i] = synth->type;
 		} else {
@@ -57,9 +57,9 @@ void band_get_channel_synths(const SynthType *types[NUM_CHANNELS])
 	}
 }
 
-int band_set_channel_synth(int channel, const SynthType *type)
+int hm_band_set_channel_synth(int channel, const HmSynthType *type)
 {
-	Synth **synth = &synths[channel];
+	HmSynth **synth = &synths[channel];
 
 	if (*synth) {
 		(*synth)->free(*synth);
@@ -72,21 +72,21 @@ int band_set_channel_synth(int channel, const SynthType *type)
 	return 0;
 }
 
-const char **band_get_channel_controls(int channel, int *numControls)
+const char **hm_band_get_channel_controls(int channel, int *numControls)
 {
-	Synth *synth = synths[channel];
+	HmSynth *synth = synths[channel];
 	return synth->getControls(synth, numControls);
 }
 
-float band_get_channel_control(int channel, int control)
+float hm_band_get_channel_control(int channel, int control)
 {
-	Synth *synth = synths[channel];
+	HmSynth *synth = synths[channel];
 	return synth->getControl(synth, control);
 }
 
 static void process_message()
 {
-	Synth *synth = synths[message->channel];
+	HmSynth *synth = synths[message->channel];
 	if (!synth)
 		return;
 
@@ -112,7 +112,7 @@ static void process_message()
 	}
 }
 
-void band_run(float *buffer, int length)
+void hm_band_run(float *buffer, int length)
 {
 	for (int i = 0; i < length ; i++) {
 		buffer[i] = 0;
@@ -132,16 +132,16 @@ void band_run(float *buffer, int length)
 		int samples;
 		if (message) {
 			duration = message->time - time;
-			samples = duration * (SAMPLE_RATE / 1000);
+			samples = duration * (HM_SAMPLE_RATE / 1000);
 		}
 
 		if (!message || samples > length) {
 			samples = length;
-			duration = (double)samples / (SAMPLE_RATE / 1000);
+			duration = (double)samples / (HM_SAMPLE_RATE / 1000);
 		}
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
-			Synth *synth = synths[i];
+			HmSynth *synth = synths[i];
 			if (synth) {
 				synth->generate(synth, buffer, samples);
 			}

@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "synth.h"
-#include "band.h"
-#include "lib.h"
+#include "hamilton/synth.h"
+#include "hamilton/band.h"
+#include "hamilton/lib.h"
 
 int mda_dx10_register();
 static const char *name = "mda DX10";
@@ -72,7 +72,7 @@ struct Voice {
 };
 
 typedef struct Dx10 {
-	Synth base;
+	HmSynth base;
 
 	struct Patch patches[NUM_PATCHES];
 	int currentPatch;
@@ -106,7 +106,7 @@ typedef struct Dx10 {
 
 void update_params(Dx10 *this)
 {
-	const float SAMPLE_TIME = 1.0f / SAMPLE_RATE;
+	const float SAMPLE_TIME = 1.0f / HM_SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;
 
 	this->tune = MIDI_TO_FREQ_1 * SAMPLE_TIME * powf(2.0f, floorf(controls[11] * 6.9f) - 2.0f);
@@ -165,7 +165,7 @@ static struct Voice *find_next_voice(Dx10 *this)
 	return voice;
 }
 
-static void start_note(Synth *base, int note, float velocity)
+static void start_note(HmSynth *base, int note, float velocity)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -196,7 +196,7 @@ static void start_note(Synth *base, int note, float velocity)
 	voice->env.decay = this->env.decay;
 }
 
-static void stop_note(Synth *base, int note)
+static void stop_note(HmSynth *base, int note)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -218,20 +218,20 @@ static void stop_note(Synth *base, int note)
 	}
 }
 
-static const char **get_controls(Synth *base, int *numControls)
+static const char **get_controls(HmSynth *base, int *numControls)
 {
 	*numControls = NUM_CONTROLS;
 	return controls;
 }
 
-static float get_control(Synth *base, int control)
+static float get_control(HmSynth *base, int control)
 {
 	Dx10 *this = (Dx10 *)base;
 
 	return this->patches[this->currentPatch].controls[control];
 }
 
-static void set_control(Synth *base, int control, float value)
+static void set_control(HmSynth *base, int control, float value)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -239,12 +239,12 @@ static void set_control(Synth *base, int control, float value)
 	update_params(this);
 }
 
-static int get_num_patches(Synth *base)
+static int get_num_patches(HmSynth *base)
 {
 	return NUM_PATCHES;
 }
 
-static void set_patch(Synth *base, int patch)
+static void set_patch(HmSynth *base, int patch)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -252,7 +252,7 @@ static void set_patch(Synth *base, int patch)
 	update_params(this);
 }
 
-static int get_patch(Synth *base)
+static int get_patch(HmSynth *base)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -277,7 +277,7 @@ static void update_voices(Dx10 *this)
 	}
 }
 
-static void generate(Synth *base, float *output, int samples)
+static void generate(HmSynth *base, float *output, int samples)
 {
 	Dx10 *this = (Dx10 *)base;
 
@@ -332,7 +332,7 @@ static void generate(Synth *base, float *output, int samples)
 	this->lfo.mw = mw;
 }
 
-static void free_synth(Synth *synth)
+static void free_synth(HmSynth *synth)
 {
 	free(synth);
 }
@@ -382,13 +382,13 @@ static void fill_patches(Dx10 *this)
 	set_patch_controls(this, 31, (float[]){0.000, 0.355, 0.350, 0.000, 0.105, 0.000, 0.000, 0.200, 0.500, 0.500, 0.000, 0.645, 0.500, 1.000, 0.296, 0.500});
 }
 
-static Synth *init(const SynthType *type)
+static HmSynth *init(const HmSynthType *type)
 {
 	Dx10 *this = malloc(sizeof(Dx10));
 	if (!this)
 		return NULL;
 
-	this->base = (Synth){
+	this->base = (HmSynth){
 		.type = type,
 		.free = free_synth,
 		.getControls = get_controls,
@@ -439,5 +439,5 @@ static Synth *init(const SynthType *type)
 
 int mda_dx10_register()
 {
-	return lib_add_synth(name, init);
+	return hm_lib_add_synth(name, init);
 }

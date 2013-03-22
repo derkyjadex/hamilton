@@ -6,9 +6,9 @@
 
 #include <SDL/SDL.h>
 
-#include "band.h"
-#include "lib.h"
-#include "audio.h"
+#include "hamilton/band.h"
+#include "hamilton/lib.h"
+#include "hamilton/audio.h"
 #include "portmidi.h"
 
 int sine_wave_register();
@@ -45,10 +45,10 @@ static int run()
         }
     }
 
-	error = audio_init();
+	error = hm_audio_init();
 	if (error) goto end;
 
-	audio_start();
+	hm_audio_start();
 
 	bool finished = false;
 
@@ -65,7 +65,7 @@ static int run()
 								finished = true;
 
 							} else if (key >= SDLK_0 && key <= SDLK_9) {
-								band_send_note(0, 0, (event.type == SDL_KEYDOWN), key + 12, 1.0);
+								hm_band_send_note(0, 0, (event.type == SDL_KEYDOWN), key + 12, 1.0);
 							}
 						}
 						break;
@@ -90,19 +90,19 @@ static int run()
 
 				switch (type) {
 					case 0x8:
-						band_send_note(0, channel, false, data1, data2 / 127.0);
+						hm_band_send_note(0, channel, false, data1, data2 / 127.0);
 						break;
 
 					case 0x9:
-						band_send_note(0, channel, true, data1, data2 / 127.0);
+						hm_band_send_note(0, channel, true, data1, data2 / 127.0);
 						break;
 
 					case 0xB:
-						band_send_cc(0, channel, data1, data2 / 127.0);
+						hm_band_send_cc(0, channel, data1, data2 / 127.0);
 						break;
 
 					case 0xC:
-						band_send_patch(0, channel, data1);
+						hm_band_send_patch(0, channel, data1);
 						break;
 				}
 			}
@@ -112,7 +112,7 @@ static int run()
 	}
 
 end:
-	audio_free();
+	hm_audio_free();
 	Pm_Terminate();
 	SDL_Quit();
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 {
 	int error;
 
-	error = band_init();
+	error = hm_band_init();
 	if (error) goto end;
 
 	error = sine_wave_register();
@@ -133,15 +133,15 @@ int main(int argc, char *argv[])
 	if (error) goto end;
 
 	int n;
-	const SynthType *synths = lib_get_synths(&n);
+	const HmSynthType *synths = hm_lib_get_synths(&n);
 
-	error = band_set_channel_synth(0, &synths[1]);
+	error = hm_band_set_channel_synth(0, &synths[1]);
 	if (error) goto end;
 
 	error = run();
 
 end:
-	band_free();
+	hm_band_free();
 
 	return error;
 }

@@ -6,38 +6,38 @@
 
 #include <string.h>
 
-#include "lib.h"
+#include "hamilton/lib.h"
 
 const int MAX_SYNTHS = 8;
-static SynthType types[MAX_SYNTHS];
+static HmSynthType types[MAX_SYNTHS];
 static int numTypes;
 
-int lib_init()
+int hm_lib_init()
 {
 	return 0;
 }
 
-void lib_free()
+void hm_lib_free()
 { }
 
-int lib_add_synth(const char *name, Synth *(*init)(const SynthType *type))
+int hm_lib_add_synth(const char *name, HmSynth *(*init)(const HmSynthType *type))
 {
 	if (numTypes == MAX_SYNTHS)
 		return 1;
 
-	types[numTypes] = (SynthType){name, init};
+	types[numTypes] = (HmSynthType){name, init};
 	numTypes++;
 
 	return 0;
 }
 
-const SynthType *lib_get_synths(int *num)
+const HmSynthType *hm_lib_get_synths(int *num)
 {
 	*num = numTypes;
 	return types;
 }
 
-const SynthType *lib_get_synth(const char *name)
+const HmSynthType *hm_lib_get_synth(const char *name)
 {
 	for (int i = 0; i < numTypes; i++) {
 		if (!strcmp(types[i].name, name))

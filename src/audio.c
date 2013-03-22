@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "audio.h"
-#include "band.h"
+#include "hamilton/audio.h"
+#include "hamilton/band.h"
 
 static const int BUFFER_SIZE = 256;
 
@@ -19,7 +19,7 @@ static void callback(void *_, Uint8 *output, int length)
 	length /= 2;
 	float buffer[length];
 
-	band_run(buffer, length);
+	hm_band_run(buffer, length);
 
 	int16_t *samples = (int16_t *)output;
 
@@ -31,7 +31,7 @@ static void callback(void *_, Uint8 *output, int length)
 	}
 }
 
-int audio_init()
+int hm_audio_init()
 {
 	int error;
 
@@ -39,7 +39,7 @@ int audio_init()
 	if (error) goto end;
 
 	SDL_AudioSpec desired = {
-		.freq = SAMPLE_RATE,
+		.freq = HM_SAMPLE_RATE,
 		.format = AUDIO_S16SYS,
 		.channels = 1,
 		.samples = BUFFER_SIZE,
@@ -52,24 +52,24 @@ int audio_init()
 end:
 	if (error) {
 		fprintf(stderr, "Error opening audio: %s\n", SDL_GetError());
-		audio_free();
+		hm_audio_free();
 	}
 
 	return error;
 }
 
-void audio_free()
+void hm_audio_free()
 {
 	SDL_CloseAudio();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
-void audio_start()
+void hm_audio_start()
 {
 	SDL_PauseAudio(0);
 }
 
-void audio_pause()
+void hm_audio_pause()
 {
 	SDL_PauseAudio(1);
 }

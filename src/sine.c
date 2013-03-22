@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "synth.h"
-#include "band.h"
-#include "lib.h"
+#include "hamilton/synth.h"
+#include "hamilton/band.h"
+#include "hamilton/lib.h"
 
 int sine_wave_register();
 static const char *name = "Sine Wave";
@@ -39,7 +39,7 @@ struct LP2 {
 };
 
 typedef struct SineSynth {
-	Synth base;
+	HmSynth base;
 
 	int note;
 
@@ -59,7 +59,7 @@ static void osc_init(struct Osc *osc)
 
 static void osc_set_freq(struct Osc *osc, float freq)
 {
-	osc->step = freq / SAMPLE_RATE;
+	osc->step = freq / HM_SAMPLE_RATE;
 }
 
 static float osc_step(struct Osc *osc, OscFunc func)
@@ -162,7 +162,7 @@ static float env_step(struct Env *env)
 
 static void lp2_recalc(struct LP2 *lp)
 {
-	float alpha = tanf(2 * M_PI * lp->cutoff / SAMPLE_RATE);
+	float alpha = tanf(2 * M_PI * lp->cutoff / HM_SAMPLE_RATE);
 	float alphaSq = alpha * alpha;
 	float c = 1 / (1 + 2 * M_SQRT1_2 * alpha + alphaSq);
 
@@ -211,18 +211,18 @@ static float mix(float a, float b, float factor)
 	return (1.0 - factor) * a + factor * b;
 }
 
-static const char **get_controls(Synth *base, int *numControls)
+static const char **get_controls(HmSynth *base, int *numControls)
 {
 	*numControls = 0;
 	return controls;
 }
 
-static float get_control(Synth *base, int control)
+static float get_control(HmSynth *base, int control)
 {
 	return 0;
 }
 
-static void set_control(Synth *base, int control, float value)
+static void set_control(HmSynth *base, int control, float value)
 { }
 
 static float midi_to_freq(int note)
@@ -230,7 +230,7 @@ static float midi_to_freq(int note)
 	return (note <= 0) ? 0 : 440.0 * powf(2.0, (note - 69.0) / 12.0);
 }
 
-static void start_note(Synth *base, int num, float velocity)
+static void start_note(HmSynth *base, int num, float velocity)
 {
 	SineSynth *synth = (SineSynth *)base;
 
@@ -244,7 +244,7 @@ static void start_note(Synth *base, int num, float velocity)
 	lp2_recalc(&synth->filter);
 }
 
-static void stop_note(Synth *base, int num)
+static void stop_note(HmSynth *base, int num)
 {
 	SineSynth *synth = (SineSynth *)base;
 
@@ -256,7 +256,7 @@ static void stop_note(Synth *base, int num)
 	}
 }
 
-static void generate(Synth *base, float *buffer, int length)
+static void generate(HmSynth *base, float *buffer, int length)
 {
 	SineSynth *synth = (SineSynth *)base;
 
@@ -271,18 +271,18 @@ static void generate(Synth *base, float *buffer, int length)
 	}
 }
 
-static void free_synth(Synth *synth)
+static void free_synth(HmSynth *synth)
 {
 	free(synth);
 }
 
-static Synth *init(const SynthType *type)
+static HmSynth *init(const HmSynthType *type)
 {
 	SineSynth *synth = malloc(sizeof(SineSynth));
 	if (!synth)
 		return NULL;
 
-	synth->base = (Synth){
+	synth->base = (HmSynth){
 		.type = type,
 		.free = free_synth,
 		.getControls = get_controls,
@@ -315,5 +315,5 @@ static Synth *init(const SynthType *type)
 
 int sine_wave_register()
 {
-	return lib_add_synth(name, init);
+	return hm_lib_add_synth(name, init);
 }
