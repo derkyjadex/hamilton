@@ -42,6 +42,7 @@ const int SUSTAIN_NOTE = 128;
 
 const float MIDI_TO_FREQ_1 = 8.175798915644f;
 const float MIDI_TO_FREQ_2 = 0.05776226505f;
+const float HALF_PI = 1.570796326795f;
 
 struct Patch {
 	float controls[NUM_CONTROLS];
@@ -125,7 +126,7 @@ void update_params(Dx10 *this)
 		}
 	}
 
-	this->mod.ratio = 1.570796326795f * ratio;
+	this->mod.ratio = HALF_PI * ratio;
 	this->mod.initDepth = 0.0002f * controls[5] * controls[5];
 	this->mod.susDepth = 0.0002f * controls[7] * controls[7];
 
