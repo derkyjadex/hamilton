@@ -20,14 +20,6 @@ static int run()
 {
 	int error;
 
-	SDL_Surface *screen = NULL;
-
-	error = SDL_Init(SDL_INIT_VIDEO);
-	if (error) goto end;
-
-	screen = SDL_SetVideoMode(300, 200, 0, 0);
-	if (!screen) goto end;
-
 	Pm_Initialize();
 
     int count = Pm_CountDevices();
@@ -53,30 +45,6 @@ static int run()
 	bool finished = false;
 
 	while (!finished) {
-		{
-			SDL_Event event;
-			while (SDL_PollEvent(&event)) {
-				switch (event.type) {
-					case SDL_KEYDOWN:
-					case SDL_KEYUP:
-						{
-							SDLKey key = event.key.keysym.sym;
-							if (key == SDLK_ESCAPE) {
-								finished = true;
-
-							} else if (key >= SDLK_0 && key <= SDLK_9) {
-								hm_band_send_note(0, 0, (event.type == SDL_KEYDOWN), key + 12, 1.0);
-							}
-						}
-						break;
-
-					case SDL_QUIT:
-						finished = true;
-						break;
-				}
-			}
-		}
-
 		{
 			PmEvent event;
 			while (Pm_Read(midi, &event, 1) > 0) {
@@ -114,11 +82,11 @@ static int run()
 end:
 	hm_audio_free();
 	Pm_Terminate();
-	SDL_Quit();
 
 	return error;
 }
 
+#undef main
 int main(int argc, char *argv[])
 {
 	int error;

@@ -16,11 +16,28 @@
 		1A7BEA9516FD1275008B3BCB /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E616ED2F1900C40716 /* audio.c */; };
 		1A7BEA9616FD1275008B3BCB /* band.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E716ED2F1900C40716 /* band.c */; };
 		1A7BEA9716FD1275008B3BCB /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E816ED2F1900C40716 /* lib.c */; };
-		1A7BEA9816FD1275008B3BCB /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EC16ED2F1900C40716 /* main.c */; };
 		1A7BEA9916FD1275008B3BCB /* mq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E916ED2F1900C40716 /* mq.c */; };
 		1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EB16ED2F1900C40716 /* sine.c */; };
 		1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63216F5D49700C40716 /* mda_dx10.c */; };
+		1A7BEAB416FD1BE2008B3BCB /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EC16ED2F1900C40716 /* main.c */; };
+		1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A554C6916FD014E007ACD72 /* libhamilton.a */; };
+		1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C61C16ED2FE200C40716 /* SDL.framework */; };
+		1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
+		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
+		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1A7BEAA916FD1BA8008B3BCB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -39,9 +56,6 @@
 		1A65C60516ED2FB000C40716 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		1A65C60616ED2FB000C40716 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1A65C61C16ED2FE200C40716 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
-		1A65C61F16ED304300C40716 /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
-		1A65C62016ED304300C40716 /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = "<group>"; };
-		1A65C62116ED304300C40716 /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = "<group>"; };
 		1A65C62A16ED30E700C40716 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A65C62C16ED386000C40716 /* synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = synth.h; sourceTree = "<group>"; };
 		1A65C62D16ED38B600C40716 /* band.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band.h; sourceTree = "<group>"; };
@@ -62,6 +76,7 @@
 		1A65C64B16F63F5B00C40716 /* pminternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pminternal.h; path = portmidi/pm_common/pminternal.h; sourceTree = SOURCE_ROOT; };
 		1A65C64C16F63F5B00C40716 /* pmutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pmutil.h; path = portmidi/pm_common/pmutil.h; sourceTree = SOURCE_ROOT; };
 		1A65C64D16F63F5B00C40716 /* portmidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = portmidi.h; path = portmidi/pm_common/portmidi.h; sourceTree = SOURCE_ROOT; };
+		1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hamiltoncli; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +84,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A7BEAA816FD1BA8008B3BCB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */,
+				1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */,
+				1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */,
+				1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */,
+				1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,7 +134,6 @@
 				1A65C5EC16ED2F1900C40716 /* main.c */,
 				1A65C5E916ED2F1900C40716 /* mq.c */,
 				1A65C5EA16ED2F1900C40716 /* mq.h */,
-				1A65C61E16ED302A00C40716 /* osx */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
 				1A65C63216F5D49700C40716 /* mda_dx10.c */,
 			);
@@ -128,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				1A554C6916FD014E007ACD72 /* libhamilton.a */,
+				1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -152,16 +179,6 @@
 				1A65C60616ED2FB000C40716 /* Foundation.framework */,
 			);
 			name = "Other Frameworks";
-			sourceTree = "<group>";
-		};
-		1A65C61E16ED302A00C40716 /* osx */ = {
-			isa = PBXGroup;
-			children = (
-				1A65C61F16ED304300C40716 /* Prefix.pch */,
-				1A65C62016ED304300C40716 /* SDLMain.h */,
-				1A65C62116ED304300C40716 /* SDLMain.m */,
-			);
-			path = osx;
 			sourceTree = "<group>";
 		};
 		1A65C62916ED30A900C40716 /* Supporting Files */ = {
@@ -225,6 +242,23 @@
 			productReference = 1A554C6916FD014E007ACD72 /* libhamilton.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		1A7BEAAA16FD1BA8008B3BCB /* hamiltoncli */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A7BEAB116FD1BA8008B3BCB /* Build configuration list for PBXNativeTarget "hamiltoncli" */;
+			buildPhases = (
+				1A7BEAA716FD1BA8008B3BCB /* Sources */,
+				1A7BEAA816FD1BA8008B3BCB /* Frameworks */,
+				1A7BEAA916FD1BA8008B3BCB /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = hamiltoncli;
+			productName = hamiltoncli;
+			productReference = 1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -246,6 +280,7 @@
 			projectRoot = "";
 			targets = (
 				1A554C6816FD014E007ACD72 /* hamilton */,
+				1A7BEAAA16FD1BA8008B3BCB /* hamiltoncli */,
 			);
 		};
 /* End PBXProject section */
@@ -264,10 +299,17 @@
 				1A7BEA9516FD1275008B3BCB /* audio.c in Sources */,
 				1A7BEA9616FD1275008B3BCB /* band.c in Sources */,
 				1A7BEA9716FD1275008B3BCB /* lib.c in Sources */,
-				1A7BEA9816FD1275008B3BCB /* main.c in Sources */,
 				1A7BEA9916FD1275008B3BCB /* mq.c in Sources */,
 				1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */,
 				1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A7BEAA716FD1BA8008B3BCB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A7BEAB416FD1BE2008B3BCB /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,6 +344,20 @@
 			};
 			name = Release;
 		};
+		1A7BEAB216FD1BA8008B3BCB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		1A7BEAB316FD1BA8008B3BCB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -322,6 +378,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		1A7BEAB116FD1BA8008B3BCB /* Build configuration list for PBXNativeTarget "hamiltoncli" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A7BEAB216FD1BA8008B3BCB /* Debug */,
+				1A7BEAB316FD1BA8008B3BCB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
