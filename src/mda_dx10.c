@@ -13,7 +13,7 @@
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
 
-int mda_dx10_register();
+int mda_dx10_register(void);
 static const char *name = "mda DX10";
 static const char *controls[] = {
 	"Attack",
@@ -104,7 +104,7 @@ typedef struct Dx10 {
 	float waveform;
 } Dx10;
 
-void update_params(Dx10 *this)
+static void update_params(Dx10 *this)
 {
 	const float SAMPLE_TIME = 1.0f / HM_SAMPLE_RATE;
 	float *controls = this->patches[this->currentPatch].controls;

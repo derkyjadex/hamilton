@@ -7,6 +7,7 @@
 #include <SDL/SDL.h>
 #include <stdio.h>
 
+#include "hamilton/band.h"
 #include "mq.h"
 
 static SDL_mutex *lock;

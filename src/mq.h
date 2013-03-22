@@ -38,4 +38,4 @@ int mq_init(void);
 void mq_free(void);
 
 bool mq_push(Message *message);
-Message *mq_pop();
+Message *mq_pop(void);

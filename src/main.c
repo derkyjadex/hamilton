@@ -11,8 +11,8 @@
 #include "hamilton/audio.h"
 #include "portmidi.h"
 
-int sine_wave_register();
-int mda_dx10_register();
+int sine_wave_register(void);
+int mda_dx10_register(void);
 
 static PmStream *midi;
 

@@ -11,7 +11,7 @@
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
 
-int sine_wave_register();
+int sine_wave_register(void);
 static const char *name = "Sine Wave";
 static const char *controls[] = { };
 
