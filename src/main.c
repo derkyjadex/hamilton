@@ -9,33 +9,17 @@
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
 #include "hamilton/audio.h"
-#include "portmidi.h"
+#include "hamilton/midi.h"
 
 int sine_wave_register(void);
 int mda_dx10_register(void);
-
-static PmStream *midi;
 
 static int run()
 {
 	int error;
 
-	Pm_Initialize();
-
-    int count = Pm_CountDevices();
-    for (int i = 0; i < count; i++) {
-        const PmDeviceInfo *device = Pm_GetDeviceInfo(i);
-        if (device->input) {
-            Pm_OpenInput(&midi, i, NULL, 265, NULL, NULL);
-            Pm_SetFilter(midi,  ~PM_FILT_NOTE & ~PM_FILT_CONTROL & ~PM_FILT_PROGRAM);
-            PmEvent event;
-            while (Pm_Poll(midi)) {
-                Pm_Read(midi, &event, 1);
-            }
-
-            break;
-        }
-    }
+	error = hm_midi_init();
+	if (error) goto end;
 
 	error = hm_audio_init();
 	if (error) goto end;
@@ -46,13 +30,10 @@ static int run()
 
 	while (!finished) {
 		{
-			PmEvent event;
-			while (Pm_Read(midi, &event, 1) > 0) {
-				uint8_t status = Pm_MessageStatus(event.message);
+			uint8_t status, data1, data2;
+			while (hm_midi_read(&status, &data1, &data2) > 0) {
 				uint8_t type = status >> 4;
 				uint8_t channel = status & 0x0F;
-				uint8_t data1 = Pm_MessageData1(event.message);
-				uint8_t data2 = Pm_MessageData2(event.message);
 
 				printf("%x, %x, %x, %x\n", type, channel, data1, data2);
 
@@ -81,7 +62,7 @@ static int run()
 
 end:
 	hm_audio_free();
-	Pm_Terminate();
+	hm_midi_free();
 
 	return error;
 }

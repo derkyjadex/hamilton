@@ -25,6 +25,7 @@
 		1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
 		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
 		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
+		1A7BEABC16FD1EF9008B3BCB /* midi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BEABB16FD1EF9008B3BCB /* midi.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -77,6 +78,8 @@
 		1A65C64C16F63F5B00C40716 /* pmutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pmutil.h; path = portmidi/pm_common/pmutil.h; sourceTree = SOURCE_ROOT; };
 		1A65C64D16F63F5B00C40716 /* portmidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = portmidi.h; path = portmidi/pm_common/portmidi.h; sourceTree = SOURCE_ROOT; };
 		1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hamiltoncli; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A7BEABA16FD1ECE008B3BCB /* midi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = midi.h; sourceTree = "<group>"; };
+		1A7BEABB16FD1EF9008B3BCB /* midi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,8 +110,9 @@
 			children = (
 				1A65C62F16ED3A1200C40716 /* audio.h */,
 				1A65C62D16ED38B600C40716 /* band.h */,
-				1A65C62C16ED386000C40716 /* synth.h */,
 				1A65C62E16ED393300C40716 /* lib.h */,
+				1A7BEABA16FD1ECE008B3BCB /* midi.h */,
+				1A65C62C16ED386000C40716 /* synth.h */,
 			);
 			path = hamilton;
 			sourceTree = "<group>";
@@ -127,15 +131,16 @@
 		1A65C5E316ED2EA800C40716 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C63416F63B8B00C40716 /* portmidi */,
 				1A65C5E616ED2F1900C40716 /* audio.c */,
 				1A65C5E716ED2F1900C40716 /* band.c */,
 				1A65C5E816ED2F1900C40716 /* lib.c */,
 				1A65C5EC16ED2F1900C40716 /* main.c */,
+				1A65C63216F5D49700C40716 /* mda_dx10.c */,
+				1A7BEABB16FD1EF9008B3BCB /* midi.c */,
 				1A65C5E916ED2F1900C40716 /* mq.c */,
 				1A65C5EA16ED2F1900C40716 /* mq.h */,
+				1A65C63416F63B8B00C40716 /* portmidi */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
-				1A65C63216F5D49700C40716 /* mda_dx10.c */,
 			);
 			name = Source;
 			path = src;
@@ -302,6 +307,7 @@
 				1A7BEA9916FD1275008B3BCB /* mq.c in Sources */,
 				1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */,
 				1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */,
+				1A7BEABC16FD1EF9008B3BCB /* midi.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
