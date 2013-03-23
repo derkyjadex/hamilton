@@ -12,8 +12,8 @@
 #include "hamilton/synth.h"
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
+#include "hamilton/core_synths.h"
 
-int mda_dx10_register(void);
 static const char *name = "mda DX10";
 static const char *controls[] = {
 	"Attack",

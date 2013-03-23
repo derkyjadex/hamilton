@@ -80,6 +80,7 @@
 		1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hamiltoncli; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A7BEABA16FD1ECE008B3BCB /* midi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = midi.h; sourceTree = "<group>"; };
 		1A7BEABB16FD1EF9008B3BCB /* midi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi.c; sourceTree = "<group>"; };
+		1A7BEAC716FDB71E008B3BCB /* core_synths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = core_synths.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +114,7 @@
 				1A65C62E16ED393300C40716 /* lib.h */,
 				1A7BEABA16FD1ECE008B3BCB /* midi.h */,
 				1A65C62C16ED386000C40716 /* synth.h */,
+				1A7BEAC716FDB71E008B3BCB /* core_synths.h */,
 			);
 			path = hamilton;
 			sourceTree = "<group>";
