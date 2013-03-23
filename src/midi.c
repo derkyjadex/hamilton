@@ -22,8 +22,12 @@ int hm_midi_init()
     for (int i = 0; i < count; i++) {
         const PmDeviceInfo *device = Pm_GetDeviceInfo(i);
         if (device->input) {
-            Pm_OpenInput(&midi, i, NULL, 265, NULL, NULL);
-            Pm_SetFilter(midi,  ~PM_FILT_NOTE & ~PM_FILT_CONTROL & ~PM_FILT_PROGRAM);
+            error = Pm_OpenInput(&midi, i, NULL, 265, NULL, NULL);
+			if (error) goto end;
+
+            error = Pm_SetFilter(midi, ~PM_FILT_NOTE & ~PM_FILT_CONTROL & ~PM_FILT_PROGRAM);
+			if (error) goto end;
+
             PmEvent event;
             while (Pm_Poll(midi)) {
                 Pm_Read(midi, &event, 1);
@@ -37,6 +41,8 @@ end:
 	if (error) {
 		hm_midi_free();
 	}
+
+	return error;
 }
 
 void hm_midi_free(void)
