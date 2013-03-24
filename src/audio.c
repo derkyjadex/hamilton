@@ -14,12 +14,13 @@
 
 static const int BUFFER_SIZE = 256;
 
-static void callback(void *_, Uint8 *output, int length)
+static void callback(void *data, Uint8 *output, int length)
 {
+	HmBand *band = (HmBand *)data;
 	length /= 2;
 	float buffer[length];
 
-	hm_band_run(buffer, length);
+	hm_band_run(band, buffer, length);
 
 	int16_t *samples = (int16_t *)output;
 
@@ -31,7 +32,7 @@ static void callback(void *_, Uint8 *output, int length)
 	}
 }
 
-int hm_audio_init()
+int hm_audio_init(HmBand *band)
 {
 	int error;
 
@@ -44,7 +45,7 @@ int hm_audio_init()
 		.channels = 1,
 		.samples = BUFFER_SIZE,
 		.callback = callback,
-		.userdata = NULL
+		.userdata = band
 	}, obtained;
 
 	error = SDL_OpenAudio(&desired, &obtained);

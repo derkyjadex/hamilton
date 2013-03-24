@@ -313,7 +313,7 @@ static HmSynth *init(const HmSynthType *type)
 	return &synth->base;
 }
 
-int sine_wave_register()
+int sine_wave_register(HmBand *band)
 {
-	return hm_lib_add_synth(name, init);
+	return hm_lib_add_synth(hm_band_get_lib(band), name, init);
 }

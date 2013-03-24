@@ -6,6 +6,8 @@
 
 #include <stdbool.h>
 
+typedef struct HmMQ HmMQ;
+
 typedef enum {
 	NOTE_OFF = 0,
 	NOTE_ON = 1,
@@ -34,8 +36,8 @@ typedef struct {
 	} data;
 } Message;
 
-int mq_init(void);
-void mq_free(void);
+int mq_init(HmMQ **mq);
+void mq_free(HmMQ *mq);
 
-bool mq_push(Message *message);
-Message *mq_pop(void);
+bool mq_push(HmMQ *mq, Message *message);
+Message *mq_pop(HmMQ *mq);

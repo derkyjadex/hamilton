@@ -7,7 +7,9 @@
 #ifndef _HAMILTON_CORE_SYNTHS_H
 #define _HAMILTON_CORE_SYNTHS_H
 
-int sine_wave_register(void);
-int mda_dx10_register(void);
+#include "hamilton/band.h"
+
+int sine_wave_register(HmBand *band);
+int mda_dx10_register(HmBand *band);
 
 #endif

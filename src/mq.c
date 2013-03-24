@@ -6,152 +6,108 @@
 
 #include <SDL/SDL.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "hamilton/band.h"
 #include "mq.h"
 
-static SDL_mutex *lock;
-
 const size_t QUEUE_SIZE = 128;
-static Message _a[QUEUE_SIZE],
-			   _b[QUEUE_SIZE];
 
-static Message *reading, *writing;
-static int readNext, readLength, writeNext;
+struct HmMQ {
+	SDL_mutex *lock;
+	Message *reading, *writing;
+	int readNext, readLength, writeNext;
+	Message _buffer[QUEUE_SIZE * 2];
+};
 
-int mq_init()
+int mq_init(HmMQ **result)
 {
-	lock = SDL_CreateMutex();
-	if (!lock)
-		return 1;
+	int error = 0;
 
-	reading = _a;
-	writing = _b;
-	readNext = 0;
-	readLength = 0;
-	writeNext = 0;
+	HmMQ *mq = malloc(sizeof(HmMQ));
+	if (!mq) {
+		error = 1;
+		goto end;
+	}
+
+	mq->lock = SDL_CreateMutex();
+	if (!mq->lock) {
+		error = 2;
+		goto end;
+	}
+
+	mq->reading = mq->_buffer;
+	mq->writing = mq->_buffer + QUEUE_SIZE;
+	mq->readNext = 0;
+	mq->readLength = 0;
+	mq->writeNext = 0;
+
+	*result = mq;
+
+end:
+	if (error) {
+		mq_free(mq);
+	}
 
 	return 0;
 }
 
-void mq_free()
+void mq_free(HmMQ *mq)
 {
-	SDL_DestroyMutex(lock);
-	lock = NULL;
+	if (mq) {
+		SDL_DestroyMutex(mq->lock);
+		free(mq);
+	}
 }
 
-bool mq_push(Message *message) {
-	SDL_LockMutex(lock);
+bool mq_push(HmMQ *mq, Message *message) {
+	SDL_LockMutex(mq->lock);
 
 	bool result = false;
 
-	if (writeNext < QUEUE_SIZE) {
-		writing[writeNext] = *message;
-		writeNext++;
+	if (mq->writeNext < QUEUE_SIZE) {
+		mq->writing[mq->writeNext] = *message;
+		mq->writeNext++;
 		result = true;
 	}
 
-	SDL_UnlockMutex(lock);
+	SDL_UnlockMutex(mq->lock);
 
 	return result;
 }
 
-static bool swap_buffers()
+static bool swap_buffers(HmMQ *mq)
 {
-	SDL_LockMutex(lock);
+	SDL_LockMutex(mq->lock);
 
 	bool result = false;
 
-	if (writeNext != 0) {
-		Message *temp = reading;
-		reading = writing;
-		writing = temp;
+	if (mq->writeNext != 0) {
+		Message *temp = mq->reading;
+		mq->reading = mq->writing;
+		mq->writing = temp;
 
-		readNext = 0;
-		readLength = writeNext;
-		writeNext = 0;
+		mq->readNext = 0;
+		mq->readLength = mq->writeNext;
+		mq->writeNext = 0;
 
 		result = true;
 	}
 
-	SDL_UnlockMutex(lock);
+	SDL_UnlockMutex(mq->lock);
 
 	return result;
 }
 
-Message *mq_pop()
+Message *mq_pop(HmMQ *mq)
 {
-	if (readNext == readLength) {
-		if (!swap_buffers())
+	if (mq->readNext == mq->readLength) {
+		if (!swap_buffers(mq))
 			return NULL;
 	}
 
-	Message *message = &reading[readNext];
-	readNext++;
+	Message *message = &mq->reading[mq->readNext];
+	mq->readNext++;
 
 	return message;
-}
-
-bool hm_band_send_note(uint32_t time, int channel, bool state, int num, float velocity)
-{
-	Message message = {
-		.time = time,
-		.type = (state) ? NOTE_ON : NOTE_OFF,
-		.channel = channel,
-		.data = {
-			.note = {
-				.num = num,
-				.velocity = velocity
-			}
-		}
-	};
-
-	return mq_push(&message);
-}
-
-bool hm_band_send_pitch(uint32_t time, int channel, float offset)
-{
-	Message message = {
-		.time = time,
-		.channel = channel,
-		.type = PITCH,
-		.data = {
-			.pitch = {
-				.offset = offset
-			}
-		}
-	};
-
-	return mq_push(&message);
-}
-
-bool hm_band_send_cc(uint32_t time, int channel, int control, float value)
-{
-	Message message = {
-		.time = time,
-		.channel = channel,
-		.type = CONTROL,
-		.data = {
-			.control = {
-				.control = control,
-				.value = value
-			}
-		}
-	};
-
-	return mq_push(&message);
-}
-
-bool hm_band_send_patch(uint32_t time, int channel, int patch)
-{
-	Message message = {
-		.time = time,
-		.channel = channel,
-		.type = PATCH,
-		.data = {
-			.patch = patch
-		}
-	};
-
-	return mq_push(&message);
 }

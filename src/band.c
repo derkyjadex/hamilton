@@ -10,45 +10,67 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
-HmSynth *synths[NUM_CHANNELS];
-static double time = 0;
-static Message *message = NULL;
+struct HmBand {
+	HmSynth *synths[NUM_CHANNELS];
+	double time;
+	HmLib *lib;
+	HmMQ *mq;
+	Message *message;
+};
 
-int hm_band_init()
+int hm_band_init(HmBand **result)
 {
 	int error;
 
-	for (int i = 0; i < NUM_CHANNELS; i++) {
-		synths[i] = NULL;
+	HmBand *band = malloc(sizeof(HmBand));
+	if (!band) {
+		error = 1;
+		goto end;
 	}
 
-	time = 0;
-	message = NULL;
+	for (int i = 0; i < NUM_CHANNELS; i++) {
+		band->synths[i] = NULL;
+	}
 
-	error = hm_lib_init();
+	band->time = 0;
+	band->lib = NULL;
+	band->mq = NULL;
+	band->message = NULL;
+
+	error = mq_init(&band->mq);
 	if (error) goto end;
 
-	error = mq_init();
+	error = hm_lib_init(&band->lib);
 	if (error) goto end;
+
+	*result = band;
 
 end:
 	if (error) {
-		hm_band_free();
+		hm_band_free(band);
 	}
 
 	return error;
 }
 
-void hm_band_free()
+void hm_band_free(HmBand *band)
 {
-	hm_lib_free();
-	mq_free();
+	if (band) {
+		hm_lib_free(band->lib);
+		mq_free(band->mq);
+		free(band);
+	}
 }
 
-void hm_band_get_channel_synths(const HmSynthType *types[NUM_CHANNELS])
+HmLib *hm_band_get_lib(HmBand *band)
+{
+	return band->lib;
+}
+
+void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANNELS])
 {
 	for (int i = 0; i < NUM_CHANNELS; i++) {
-		HmSynth *synth = synths[i];
+		HmSynth *synth = band->synths[i];
 		if (synth) {
 			types[i] = synth->type;
 		} else {
@@ -57,9 +79,9 @@ void hm_band_get_channel_synths(const HmSynthType *types[NUM_CHANNELS])
 	}
 }
 
-int hm_band_set_channel_synth(int channel, const HmSynthType *type)
+int hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type)
 {
-	HmSynth **synth = &synths[channel];
+	HmSynth **synth = &band->synths[channel];
 
 	if (*synth) {
 		(*synth)->free(*synth);
@@ -72,21 +94,22 @@ int hm_band_set_channel_synth(int channel, const HmSynthType *type)
 	return 0;
 }
 
-const char **hm_band_get_channel_controls(int channel, int *numControls)
+const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls)
 {
-	HmSynth *synth = synths[channel];
+	HmSynth *synth = band->synths[channel];
 	return synth->getControls(synth, numControls);
 }
 
-float hm_band_get_channel_control(int channel, int control)
+float hm_band_get_channel_control(HmBand *band, int channel, int control)
 {
-	HmSynth *synth = synths[channel];
+	HmSynth *synth = band->synths[channel];
 	return synth->getControl(synth, control);
 }
 
-static void process_message()
+static void process_message(HmBand *band)
 {
-	HmSynth *synth = synths[message->channel];
+	Message *message = band->message;
+	HmSynth *synth = band->synths[message->channel];
 	if (!synth)
 		return;
 
@@ -112,44 +135,108 @@ static void process_message()
 	}
 }
 
-void hm_band_run(float *buffer, int length)
+void hm_band_run(HmBand *band, float *buffer, int length)
 {
 	for (int i = 0; i < length ; i++) {
 		buffer[i] = 0;
 	}
 
 	do {
-		if (!message) {
-			message = mq_pop();
+		if (!band->message) {
+			band->message = mq_pop(band->mq);
 		}
 
-		while (message && message->time <= time) {
-			process_message();
-			message = mq_pop();
+		while (band->message && band->message->time <= band->time) {
+			process_message(band);
+			band->message = mq_pop(band->mq);
 		}
 
 		double duration;
 		int samples;
-		if (message) {
-			duration = message->time - time;
+		if (band->message) {
+			duration = band->message->time - band->time;
 			samples = duration * (HM_SAMPLE_RATE / 1000);
 		}
 
-		if (!message || samples > length) {
+		if (!band->message || samples > length) {
 			samples = length;
 			duration = (double)samples / (HM_SAMPLE_RATE / 1000);
 		}
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
-			HmSynth *synth = synths[i];
+			HmSynth *synth = band->synths[i];
 			if (synth) {
 				synth->generate(synth, buffer, samples);
 			}
 		}
 
-		time += duration;
+		band->time += duration;
 		buffer += samples;
 		length -= samples;
 
 	} while (length);
+}
+
+bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity)
+{
+	Message message = {
+		.time = time,
+		.type = (state) ? NOTE_ON : NOTE_OFF,
+		.channel = channel,
+		.data = {
+			.note = {
+				.num = num,
+				.velocity = velocity
+			}
+		}
+	};
+
+	return mq_push(band->mq, &message);
+}
+
+bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
+{
+	Message message = {
+		.time = time,
+		.channel = channel,
+		.type = PITCH,
+		.data = {
+			.pitch = {
+				.offset = offset
+			}
+		}
+	};
+
+	return mq_push(band->mq, &message);
+}
+
+bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value)
+{
+	Message message = {
+		.time = time,
+		.channel = channel,
+		.type = CONTROL,
+		.data = {
+			.control = {
+				.control = control,
+				.value = value
+			}
+		}
+	};
+
+	return mq_push(band->mq, &message);
+}
+
+bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
+{
+	Message message = {
+		.time = time,
+		.channel = channel,
+		.type = PATCH,
+		.data = {
+			.patch = patch
+		}
+	};
+
+	return mq_push(band->mq, &message);
 }

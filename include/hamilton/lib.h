@@ -9,11 +9,13 @@
 
 #include "synth.h"
 
-int hm_lib_init(void);
-void hm_lib_free(void);
+typedef struct HmLib HmLib;
 
-int hm_lib_add_synth(const char *name, HmSynth *(*init)(const HmSynthType *type));
-const HmSynthType *hm_lib_get_synths(int *num);
-const HmSynthType *hm_lib_get_synth(const char *name);
+int hm_lib_init(HmLib **lib);
+void hm_lib_free(HmLib *lib);
+
+int hm_lib_add_synth(HmLib *lib, const char *name, HmSynth *(*init)(const HmSynthType *type));
+const HmSynthType *hm_lib_get_synths(HmLib *lib, int *num);
+const HmSynthType *hm_lib_get_synth(HmLib *lib, const char *name);
 
 #endif
