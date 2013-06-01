@@ -13,11 +13,12 @@ typedef enum {
 	NOTE_ON = 1,
 	PITCH,
 	CONTROL,
-	PATCH
+	PATCH,
+	RESET_TIME
 } MessageType;
 
 typedef struct {
-	uint32_t time;
+	uint64_t time;
 	int channel;
 	MessageType type;
 	union {
@@ -33,6 +34,7 @@ typedef struct {
 			float value;
 		} control;
 		int patch;
+		uint64_t time;
 	} data;
 } Message;
 

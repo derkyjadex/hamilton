@@ -10,9 +10,11 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
+#define MS_TO_SAMPLES(t) ((t * HM_SAMPLE_RATE) / 1000)
+
 struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
-	double time;
+	uint64_t time;
 	HmLib *lib;
 	HmMQ *mq;
 	Message *message;
@@ -114,6 +116,10 @@ static void process_message(HmBand *band)
 		return;
 
 	switch (message->type) {
+		case RESET_TIME:
+			band->time = message->data.time;
+			break;
+
 		case NOTE_OFF:
 			synth->stopNote(synth, message->data.note.num);
 			break;
@@ -151,16 +157,13 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 			band->message = mq_pop(band->mq);
 		}
 
-		double duration;
 		int samples;
 		if (band->message) {
-			duration = band->message->time - band->time;
-			samples = duration * (HM_SAMPLE_RATE / 1000);
+			samples = (int)(band->message->time - band->time);
 		}
 
 		if (!band->message || samples > length) {
 			samples = length;
-			duration = (double)samples / (HM_SAMPLE_RATE / 1000);
 		}
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
@@ -170,17 +173,30 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 			}
 		}
 
-		band->time += duration;
+		band->time += samples;
 		buffer += samples;
 		length -= samples;
 
 	} while (length);
 }
 
+bool hm_band_reset_time(HmBand *band, uint32_t time)
+{
+	Message message = {
+		.time = 0,
+		.type = RESET_TIME,
+		.data = {
+			.time = MS_TO_SAMPLES(time)
+		}
+	};
+
+	return mq_push(band->mq, &message);
+}
+
 bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity)
 {
 	Message message = {
-		.time = time,
+		.time = MS_TO_SAMPLES(time),
 		.type = (state) ? NOTE_ON : NOTE_OFF,
 		.channel = channel,
 		.data = {
@@ -197,7 +213,7 @@ bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int
 bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
 {
 	Message message = {
-		.time = time,
+		.time = MS_TO_SAMPLES(time),
 		.channel = channel,
 		.type = PITCH,
 		.data = {
@@ -213,7 +229,7 @@ bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
 bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value)
 {
 	Message message = {
-		.time = time,
+		.time = MS_TO_SAMPLES(time),
 		.channel = channel,
 		.type = CONTROL,
 		.data = {
@@ -230,7 +246,7 @@ bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, floa
 bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
 {
 	Message message = {
-		.time = time,
+		.time = MS_TO_SAMPLES(time),
 		.channel = channel,
 		.type = PATCH,
 		.data = {

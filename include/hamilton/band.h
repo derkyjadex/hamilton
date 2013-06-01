@@ -30,6 +30,7 @@ const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numCon
 float hm_band_get_channel_control(HmBand *band, int channel, int control);
 void hm_band_run(HmBand *band, float *buffer, int length);
 
+bool hm_band_reset_time(HmBand *band, uint32_t time);
 bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity);
 bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset);
 bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value);
