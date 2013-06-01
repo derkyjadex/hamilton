@@ -14,8 +14,16 @@
 
 static const int BUFFER_SIZE = 256;
 
+static bool waitingForStart;
+static SDL_sem *started;
+
 static void callback(void *data, Uint8 *output, int length)
 {
+	if (waitingForStart) {
+		waitingForStart = false;
+		SDL_SemPost(started);
+	}
+
 	HmBand *band = (HmBand *)data;
 	length /= 2;
 	float buffer[length];
@@ -35,6 +43,12 @@ static void callback(void *data, Uint8 *output, int length)
 int hm_audio_init(HmBand *band)
 {
 	int error;
+
+	started = SDL_CreateSemaphore(0);
+	if (!started) {
+		error = 1;
+		goto end;
+	}
 
 	error = SDL_InitSubSystem(SDL_INIT_AUDIO);
 	if (error) goto end;
@@ -63,11 +77,14 @@ void hm_audio_free()
 {
 	SDL_CloseAudio();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	SDL_DestroySemaphore(started);
 }
 
 void hm_audio_start()
 {
+	waitingForStart = true;
 	SDL_PauseAudio(0);
+	SDL_SemWait(started);
 }
 
 void hm_audio_pause()
