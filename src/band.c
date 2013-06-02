@@ -17,7 +17,8 @@ struct HmBand {
 	uint64_t time;
 	HmLib *lib;
 	HmMQ *mq;
-	Message *message;
+	bool hasMessage;
+	Message message;
 };
 
 int hm_band_init(HmBand **result)
@@ -37,7 +38,7 @@ int hm_band_init(HmBand **result)
 	band->time = 0;
 	band->lib = NULL;
 	band->mq = NULL;
-	band->message = NULL;
+	band->hasMessage = false;
 
 	error = mq_init(&band->mq);
 	if (error) goto end;
@@ -110,59 +111,59 @@ float hm_band_get_channel_control(HmBand *band, int channel, int control)
 
 static void process_message(HmBand *band)
 {
-	Message *message = band->message;
-	HmSynth *synth = band->synths[message->channel];
+	MessageData *data = &band->message.data;
+	HmSynth *synth = band->synths[band->message.channel];
 	if (!synth)
 		return;
 
-	switch (message->type) {
+	switch (band->message.type) {
 		case RESET_TIME:
-			band->time = message->data.time;
+			band->time = data->time;
 			break;
 
 		case NOTE_OFF:
-			synth->stopNote(synth, message->data.note.num);
+			synth->stopNote(synth, data->note.num);
 			break;
 
 		case NOTE_ON:
-			synth->startNote(synth, message->data.note.num, message->data.note.velocity);
+			synth->startNote(synth, data->note.num, data->note.velocity);
 			break;
 
 		case PITCH:
 			break;
 
 		case CONTROL:
-			synth->setControl(synth, message->data.control.control, message->data.control.value);
+			synth->setControl(synth, data->control.control, data->control.value);
 			break;
 
 		case PATCH:
-			synth->setPatch(synth, message->data.patch);
+			synth->setPatch(synth, data->patch);
 			break;
 	}
 }
 
 void hm_band_run(HmBand *band, float *buffer, int length)
 {
-	for (int i = 0; i < length ; i++) {
+	for (int i = 0; i < length; i++) {
 		buffer[i] = 0;
 	}
 
 	do {
-		if (!band->message) {
-			band->message = mq_pop(band->mq);
+		if (!band->hasMessage) {
+			band->hasMessage = mq_pop(band->mq, &band->message);
 		}
 
-		while (band->message && band->message->time <= band->time) {
+		while (band->hasMessage && band->message.time <= band->time) {
 			process_message(band);
-			band->message = mq_pop(band->mq);
+			band->hasMessage = mq_pop(band->mq, &band->message);
 		}
 
 		int samples;
-		if (band->message) {
-			samples = (int)(band->message->time - band->time);
+		if (band->hasMessage) {
+			samples = (int)(band->message.time - band->time);
 		}
 
-		if (!band->message || samples > length) {
+		if (!band->hasMessage || samples > length) {
 			samples = length;
 		}
 

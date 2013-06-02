@@ -10,14 +10,16 @@
 
 #include "hamilton/band.h"
 #include "mq.h"
+#include "pa_memorybarrier.h"
 
-const size_t QUEUE_SIZE = 128;
+#define QUEUE_SIZE 256
+#define SMALL_MASK (QUEUE_SIZE - 1)
+#define BIG_MASK (2 * QUEUE_SIZE - 1)
 
 struct HmMQ {
 	SDL_mutex *lock;
-	Message *reading, *writing;
-	int readNext, readLength, writeNext;
-	Message _buffer[QUEUE_SIZE * 2];
+	int start, end;
+	Message buffer[QUEUE_SIZE];
 };
 
 int mq_init(HmMQ **result)
@@ -36,11 +38,8 @@ int mq_init(HmMQ **result)
 		goto end;
 	}
 
-	mq->reading = mq->_buffer;
-	mq->writing = mq->_buffer + QUEUE_SIZE;
-	mq->readNext = 0;
-	mq->readLength = 0;
-	mq->writeNext = 0;
+	mq->start = 0;
+	mq->end = 0;
 
 	*result = mq;
 
@@ -60,54 +59,45 @@ void mq_free(HmMQ *mq)
 	}
 }
 
-bool mq_push(HmMQ *mq, Message *message) {
+static bool mq_push_(HmMQ *mq, const Message *message)
+{
+    if (mq->end == (mq->start ^ QUEUE_SIZE))
+		return false;
+
+	Message *ptr = &mq->buffer[mq->end & SMALL_MASK];
+
+	PaUtil_FullMemoryBarrier();
+
+	*ptr = *message;
+
+	PaUtil_WriteMemoryBarrier();
+	mq->end = (mq->end + 1) & BIG_MASK;
+
+    return true;
+}
+
+bool mq_push(HmMQ *mq, const Message *message)
+{
 	SDL_LockMutex(mq->lock);
-
-	bool result = false;
-
-	if (mq->writeNext < QUEUE_SIZE) {
-		mq->writing[mq->writeNext] = *message;
-		mq->writeNext++;
-		result = true;
-	}
-
+	bool result = mq_push_(mq, message);
 	SDL_UnlockMutex(mq->lock);
 
 	return result;
 }
 
-static bool swap_buffers(HmMQ *mq)
+bool mq_pop(HmMQ *mq, Message *message)
 {
-	SDL_LockMutex(mq->lock);
+    if (mq->end == mq->start)
+        return false;
 
-	bool result = false;
+    Message *ptr = &mq->buffer[mq->start & SMALL_MASK];
 
-	if (mq->writeNext != 0) {
-		Message *temp = mq->reading;
-		mq->reading = mq->writing;
-		mq->writing = temp;
+    PaUtil_ReadMemoryBarrier();
 
-		mq->readNext = 0;
-		mq->readLength = mq->writeNext;
-		mq->writeNext = 0;
+    *message = *ptr;
 
-		result = true;
-	}
+    PaUtil_FullMemoryBarrier();
+    mq->start = (mq->start + 1) & BIG_MASK;
 
-	SDL_UnlockMutex(mq->lock);
-
-	return result;
-}
-
-Message *mq_pop(HmMQ *mq)
-{
-	if (mq->readNext == mq->readLength) {
-		if (!swap_buffers(mq))
-			return NULL;
-	}
-
-	Message *message = &mq->reading[mq->readNext];
-	mq->readNext++;
-
-	return message;
+    return true;
 }

@@ -41,6 +41,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A554C6D16FD0230007ACD72 /* Global.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Global.xcconfig; sourceTree = "<group>"; };
 		1A554C7416FD0F4F007ACD72 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -141,6 +142,7 @@
 				1A7BEABB16FD1EF9008B3BCB /* midi.c */,
 				1A65C5E916ED2F1900C40716 /* mq.c */,
 				1A65C5EA16ED2F1900C40716 /* mq.h */,
+				1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */,
 				1A65C63416F63B8B00C40716 /* portmidi */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
 			);

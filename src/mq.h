@@ -17,29 +17,31 @@ typedef enum {
 	RESET_TIME
 } MessageType;
 
+typedef union {
+	struct {
+		int num;
+		float velocity;
+	} note;
+	struct {
+		float offset;
+	} pitch;
+	struct {
+		int control;
+		float value;
+	} control;
+	int patch;
+	uint64_t time;
+} MessageData;
+
 typedef struct {
 	uint64_t time;
 	int channel;
 	MessageType type;
-	union {
-		struct {
-			int num;
-			float velocity;
-		} note;
-		struct {
-			float offset;
-		} pitch;
-		struct {
-			int control;
-			float value;
-		} control;
-		int patch;
-		uint64_t time;
-	} data;
+	MessageData data;
 } Message;
 
 int mq_init(HmMQ **mq);
 void mq_free(HmMQ *mq);
 
-bool mq_push(HmMQ *mq, Message *message);
-Message *mq_pop(HmMQ *mq);
+bool mq_push(HmMQ *mq, const Message *message);
+bool mq_pop(HmMQ *mq, Message *message);
