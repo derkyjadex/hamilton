@@ -10,6 +10,38 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
+typedef enum {
+	NOTE_OFF = 0,
+	NOTE_ON = 1,
+	PITCH,
+	CONTROL,
+	PATCH,
+	RESET_TIME
+} MessageType;
+
+typedef union {
+	struct {
+		int num;
+		float velocity;
+	} note;
+	struct {
+		float offset;
+	} pitch;
+	struct {
+		int control;
+		float value;
+	} control;
+	int patch;
+	uint64_t time;
+} MessageData;
+
+typedef struct {
+	uint64_t time;
+	int channel;
+	MessageType type;
+	MessageData data;
+} Message;
+
 #define MS_TO_SAMPLES(t) ((t * HM_SAMPLE_RATE) / 1000)
 
 struct HmBand {
@@ -40,7 +72,7 @@ int hm_band_init(HmBand **result)
 	band->mq = NULL;
 	band->hasMessage = false;
 
-	error = mq_init(&band->mq);
+	error = mq_init(&band->mq, sizeof(Message), 256);
 	if (error) goto end;
 
 	error = hm_lib_init(&band->lib);
@@ -191,7 +223,7 @@ bool hm_band_reset_time(HmBand *band, uint32_t time)
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return mq_push_locked(band->mq, &message);
 }
 
 bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity)
@@ -208,7 +240,7 @@ bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return mq_push_locked(band->mq, &message);
 }
 
 bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
@@ -224,7 +256,7 @@ bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return mq_push_locked(band->mq, &message);
 }
 
 bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value)
@@ -241,7 +273,7 @@ bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, floa
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return mq_push_locked(band->mq, &message);
 }
 
 bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
@@ -255,5 +287,5 @@ bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return mq_push_locked(band->mq, &message);
 }

@@ -4,40 +4,47 @@
  * See COPYING for details.
  */
 
-#include <SDL/SDL.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <SDL/SDL.h>
 
-#include "hamilton/band.h"
 #include "mq.h"
 #include "pa_memorybarrier.h"
 
-#define QUEUE_SIZE 256
-#define SMALL_MASK (QUEUE_SIZE - 1)
-#define BIG_MASK (2 * QUEUE_SIZE - 1)
-
 struct HmMQ {
 	SDL_mutex *lock;
-	int start, end;
-	Message buffer[QUEUE_SIZE];
+	size_t messageSize;
+	size_t size, wrapMask, incrMask;
+
+	volatile size_t start, end;
+	char buffer[1];
 };
 
-int mq_init(HmMQ **result)
+int mq_init(HmMQ **result, size_t messageSize, size_t size)
 {
 	int error = 0;
 
-	HmMQ *mq = malloc(sizeof(HmMQ));
-	if (!mq) {
+	if (((size - 1) & size) != 0) {
 		error = 1;
+		goto end;
+	}
+
+	HmMQ *mq = malloc(sizeof(HmMQ) - 1 + messageSize * size);
+	if (!mq) {
+		error = 2;
 		goto end;
 	}
 
 	mq->lock = SDL_CreateMutex();
 	if (!mq->lock) {
-		error = 2;
+		error = 3;
 		goto end;
 	}
 
+	mq->messageSize = messageSize;
+	mq->size = size;
+	mq->wrapMask = size - 1;
+	mq->incrMask = 2 * size - 1;
 	mq->start = 0;
 	mq->end = 0;
 
@@ -59,45 +66,47 @@ void mq_free(HmMQ *mq)
 	}
 }
 
-static bool mq_push_(HmMQ *mq, const Message *message)
+bool mq_push(HmMQ *mq, const void *message)
 {
-    if (mq->end == (mq->start ^ QUEUE_SIZE))
+    if (mq->end == (mq->start ^ mq->size))
 		return false;
 
-	Message *ptr = &mq->buffer[mq->end & SMALL_MASK];
+	size_t index = mq->end & mq->wrapMask;
+	void *ptr = mq->buffer + index * mq->messageSize;
 
 	PaUtil_FullMemoryBarrier();
 
-	*ptr = *message;
+	memcpy(ptr, message, mq->messageSize);
 
 	PaUtil_WriteMemoryBarrier();
-	mq->end = (mq->end + 1) & BIG_MASK;
+	mq->end = (mq->end + 1) & mq->incrMask;
 
     return true;
 }
 
-bool mq_push(HmMQ *mq, const Message *message)
+bool mq_push_locked(HmMQ *mq, const void *message)
 {
 	SDL_LockMutex(mq->lock);
-	bool result = mq_push_(mq, message);
+	bool result = mq_push(mq, message);
 	SDL_UnlockMutex(mq->lock);
 
 	return result;
 }
 
-bool mq_pop(HmMQ *mq, Message *message)
+bool mq_pop(HmMQ *mq, void *message)
 {
     if (mq->end == mq->start)
         return false;
 
-    Message *ptr = &mq->buffer[mq->start & SMALL_MASK];
+	size_t index = mq->start & mq->wrapMask;
+    void *ptr = mq->buffer + index * mq->messageSize;
 
     PaUtil_ReadMemoryBarrier();
 
-    *message = *ptr;
+	memcpy(message, ptr, mq->messageSize);
 
     PaUtil_FullMemoryBarrier();
-    mq->start = (mq->start + 1) & BIG_MASK;
+    mq->start = (mq->start + 1) & mq->incrMask;
 
     return true;
 }
