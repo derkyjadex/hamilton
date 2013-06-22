@@ -27,6 +27,7 @@
 		1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
 		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
 		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
+		1AC0D7731776059600290C88 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D7721776059600290C88 /* seq.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -86,6 +87,8 @@
 		1A7BEABA16FD1ECE008B3BCB /* midi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = midi.h; sourceTree = "<group>"; };
 		1A7BEABB16FD1EF9008B3BCB /* midi_pm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_pm.c; sourceTree = "<group>"; };
 		1A7BEAC716FDB71E008B3BCB /* core_synths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = core_synths.h; sourceTree = "<group>"; };
+		1AC0D7711776050F00290C88 /* seq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seq.h; sourceTree = "<group>"; };
+		1AC0D7721776059600290C88 /* seq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = seq.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,10 +120,11 @@
 			children = (
 				1A65C62F16ED3A1200C40716 /* audio.h */,
 				1A65C62D16ED38B600C40716 /* band.h */,
+				1A7BEAC716FDB71E008B3BCB /* core_synths.h */,
 				1A65C62E16ED393300C40716 /* lib.h */,
 				1A7BEABA16FD1ECE008B3BCB /* midi.h */,
+				1AC0D7711776050F00290C88 /* seq.h */,
 				1A65C62C16ED386000C40716 /* synth.h */,
-				1A7BEAC716FDB71E008B3BCB /* core_synths.h */,
 			);
 			path = hamilton;
 			sourceTree = "<group>";
@@ -151,6 +155,7 @@
 				1A65C5EA16ED2F1900C40716 /* mq.h */,
 				1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */,
 				1A65C63416F63B8B00C40716 /* portmidi */,
+				1AC0D7721776059600290C88 /* seq.c */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
 			);
 			name = Source;
@@ -320,6 +325,7 @@
 				1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */,
 				1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */,
 				1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */,
+				1AC0D7731776059600290C88 /* seq.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -404,6 +410,7 @@
 				1A7BEAB316FD1BA8008B3BCB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
