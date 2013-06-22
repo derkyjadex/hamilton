@@ -7,13 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0F50ED176DD65800D24C94 /* Jackmp.framework */; };
+		1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50EF176DD67D00D24C94 /* audio_jack.c */; };
+		1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50F7176DDFDD00D24C94 /* midi_jack.c */; };
 		1A7BEA8F16FD126D008B3BCB /* finddefault.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63516F63C1C00C40716 /* finddefault.c */; };
 		1A7BEA9016FD126D008B3BCB /* pmmac.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63616F63C1C00C40716 /* pmmac.c */; };
 		1A7BEA9116FD126D008B3BCB /* pmmacosxcm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63716F63C1C00C40716 /* pmmacosxcm.c */; };
 		1A7BEA9216FD126D008B3BCB /* pmutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63F16F63C5600C40716 /* pmutil.c */; };
 		1A7BEA9316FD126D008B3BCB /* portmidi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C64016F63C5600C40716 /* portmidi.c */; };
 		1A7BEA9416FD126D008B3BCB /* ptmacosx_mach.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63D16F63C3B00C40716 /* ptmacosx_mach.c */; };
-		1A7BEA9516FD1275008B3BCB /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E616ED2F1900C40716 /* audio.c */; };
 		1A7BEA9616FD1275008B3BCB /* band.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E716ED2F1900C40716 /* band.c */; };
 		1A7BEA9716FD1275008B3BCB /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E816ED2F1900C40716 /* lib.c */; };
 		1A7BEA9916FD1275008B3BCB /* mq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E916ED2F1900C40716 /* mq.c */; };
@@ -25,7 +27,6 @@
 		1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
 		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
 		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
-		1A7BEABC16FD1EF9008B3BCB /* midi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BEABB16FD1EF9008B3BCB /* midi.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,12 +42,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A0F50ED176DD65800D24C94 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = /System/Library/Frameworks/Jackmp.framework; sourceTree = "<absolute>"; };
+		1A0F50EF176DD67D00D24C94 /* audio_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio_jack.c; sourceTree = "<group>"; };
+		1A0F50F7176DDFDD00D24C94 /* midi_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_jack.c; sourceTree = "<group>"; };
 		1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A554C6D16FD0230007ACD72 /* Global.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Global.xcconfig; sourceTree = "<group>"; };
 		1A554C7416FD0F4F007ACD72 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		1A554C7516FD0F83007ACD72 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
-		1A65C5E616ED2F1900C40716 /* audio.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
+		1A65C5E616ED2F1900C40716 /* audio_sdl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = audio_sdl.c; sourceTree = "<group>"; };
 		1A65C5E716ED2F1900C40716 /* band.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = band.c; sourceTree = "<group>"; };
 		1A65C5E816ED2F1900C40716 /* lib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lib.c; sourceTree = "<group>"; };
 		1A65C5E916ED2F1900C40716 /* mq.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mq.c; sourceTree = "<group>"; };
@@ -80,7 +84,7 @@
 		1A65C64D16F63F5B00C40716 /* portmidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = portmidi.h; path = portmidi/pm_common/portmidi.h; sourceTree = SOURCE_ROOT; };
 		1A7BEAAB16FD1BA8008B3BCB /* hamiltoncli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hamiltoncli; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A7BEABA16FD1ECE008B3BCB /* midi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = midi.h; sourceTree = "<group>"; };
-		1A7BEABB16FD1EF9008B3BCB /* midi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi.c; sourceTree = "<group>"; };
+		1A7BEABB16FD1EF9008B3BCB /* midi_pm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_pm.c; sourceTree = "<group>"; };
 		1A7BEAC716FDB71E008B3BCB /* core_synths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = core_synths.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -96,6 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */,
 				1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */,
 				1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */,
 				1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */,
@@ -134,12 +139,14 @@
 		1A65C5E316ED2EA800C40716 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				1A65C5E616ED2F1900C40716 /* audio.c */,
+				1A0F50EF176DD67D00D24C94 /* audio_jack.c */,
+				1A65C5E616ED2F1900C40716 /* audio_sdl.c */,
 				1A65C5E716ED2F1900C40716 /* band.c */,
 				1A65C5E816ED2F1900C40716 /* lib.c */,
 				1A65C5EC16ED2F1900C40716 /* main.c */,
 				1A65C63216F5D49700C40716 /* mda_dx10.c */,
-				1A7BEABB16FD1EF9008B3BCB /* midi.c */,
+				1A0F50F7176DDFDD00D24C94 /* midi_jack.c */,
+				1A7BEABB16FD1EF9008B3BCB /* midi_pm.c */,
 				1A65C5E916ED2F1900C40716 /* mq.c */,
 				1A65C5EA16ED2F1900C40716 /* mq.h */,
 				1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */,
@@ -171,6 +178,7 @@
 		1A65C60016ED2FB000C40716 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1A0F50ED176DD65800D24C94 /* Jackmp.framework */,
 				1A65C60116ED2FB000C40716 /* Cocoa.framework */,
 				1A65C64516F63E3B00C40716 /* CoreAudio.framework */,
 				1A65C64316F63E2E00C40716 /* CoreMIDI.framework */,
@@ -305,13 +313,13 @@
 				1A7BEA9216FD126D008B3BCB /* pmutil.c in Sources */,
 				1A7BEA9316FD126D008B3BCB /* portmidi.c in Sources */,
 				1A7BEA9416FD126D008B3BCB /* ptmacosx_mach.c in Sources */,
-				1A7BEA9516FD1275008B3BCB /* audio.c in Sources */,
 				1A7BEA9616FD1275008B3BCB /* band.c in Sources */,
 				1A7BEA9716FD1275008B3BCB /* lib.c in Sources */,
 				1A7BEA9916FD1275008B3BCB /* mq.c in Sources */,
 				1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */,
 				1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */,
-				1A7BEABC16FD1EF9008B3BCB /* midi.c in Sources */,
+				1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */,
+				1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

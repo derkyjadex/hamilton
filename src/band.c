@@ -32,17 +32,16 @@ typedef union {
 		float value;
 	} control;
 	int patch;
-	uint64_t time;
+	uint32_t time;
 } MessageData;
 
 typedef struct {
-	uint64_t time;
+	uint32_t time;
 	int channel;
 	MessageType type;
 	MessageData data;
 } Message;
 
-#define MS_TO_SAMPLES(t) ((t * HM_SAMPLE_RATE) / 1000)
 
 struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
@@ -219,17 +218,17 @@ bool hm_band_reset_time(HmBand *band, uint32_t time)
 		.time = 0,
 		.type = RESET_TIME,
 		.data = {
-			.time = MS_TO_SAMPLES(time)
+			.time = time
 		}
 	};
 
-	return mq_push_locked(band->mq, &message);
+	return mq_push(band->mq, &message);
 }
 
 bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity)
 {
 	Message message = {
-		.time = MS_TO_SAMPLES(time),
+		.time = time,
 		.type = (state) ? NOTE_ON : NOTE_OFF,
 		.channel = channel,
 		.data = {
@@ -240,13 +239,13 @@ bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int
 		}
 	};
 
-	return mq_push_locked(band->mq, &message);
+	return mq_push(band->mq, &message);
 }
 
 bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
 {
 	Message message = {
-		.time = MS_TO_SAMPLES(time),
+		.time = time,
 		.channel = channel,
 		.type = PITCH,
 		.data = {
@@ -256,13 +255,13 @@ bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
 		}
 	};
 
-	return mq_push_locked(band->mq, &message);
+	return mq_push(band->mq, &message);
 }
 
 bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value)
 {
 	Message message = {
-		.time = MS_TO_SAMPLES(time),
+		.time = time,
 		.channel = channel,
 		.type = CONTROL,
 		.data = {
@@ -273,13 +272,13 @@ bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, floa
 		}
 	};
 
-	return mq_push_locked(band->mq, &message);
+	return mq_push(band->mq, &message);
 }
 
 bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
 {
 	Message message = {
-		.time = MS_TO_SAMPLES(time),
+		.time = time,
 		.channel = channel,
 		.type = PATCH,
 		.data = {
@@ -287,5 +286,5 @@ bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
 		}
 	};
 
-	return mq_push_locked(band->mq, &message);
+	return mq_push(band->mq, &message);
 }
