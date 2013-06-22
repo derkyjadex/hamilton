@@ -7,9 +7,11 @@
 #ifndef _HAMILTON_SEQ_H
 #define _HAMILTON_SEQ_H
 
+#include "albase/common.h"
+
 typedef struct HmSeq HmSeq;
 
-int hm_seq_init(HmSeq **seq);
+AlError hm_seq_init(HmSeq **seq);
 void hm_seq_free(HmSeq *seq);
 
 #endif

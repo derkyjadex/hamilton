@@ -12,9 +12,9 @@
 #include "hamilton/audio.h"
 #include "hamilton/band.h"
 
-static jack_client_t *client;
-static jack_port_t *midiPort;
-static jack_port_t *audioPort;
+static jack_client_t *client = NULL;
+static jack_port_t *midiPort = NULL;
+static jack_port_t *audioPort = NULL;
 
 static int f = 0;
 
@@ -68,43 +68,42 @@ static int process(jack_nframes_t nframes, void *arg)
 	return 0;
 }
 
-int hm_audio_init(HmBand *band)
+AlError hm_audio_init(HmBand *band)
 {
-	int error;
+	BEGIN()
 
 	client = jack_client_open("hamilton", 0, NULL);
-	if (!client) {
-		error = 1;
-		goto end;
-	}
+	if (!client)
+		THROW(AL_ERROR_GENERIC)
 
 	jack_set_process_callback(client, process, band);
 
 	audioPort = jack_port_register(client, "audio_out", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	if (!audioPort) {
-		error = 2;
-		goto end;
-	}
+	if (!audioPort)
+		THROW(AL_ERROR_GENERIC)
 
 	midiPort = jack_port_register(client, "midi_in", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
-	if (!midiPort) {
-		error = 3;
-		goto end;
-	}
+	if (!midiPort)
+		THROW(AL_ERROR_GENERIC)
 
-	error = jack_activate(client);
+	if (jack_activate(client) != 0)
+		THROW(AL_ERROR_GENERIC)
 
-end:
-	if (error) {
+	CATCH(
 		hm_audio_free();
-	}
-
-	return error;
+	)
+	FINALLY()
 }
 
 void hm_audio_free()
 {
-	jack_client_close(client);
+	if (client) {
+		jack_client_close(client);
+	}
+
+	client = NULL;
+	audioPort = NULL;
+	midiPort = NULL;
 }
 
 void hm_audio_start()

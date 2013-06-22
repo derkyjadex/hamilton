@@ -9,7 +9,7 @@
 
 #include "hamilton/band.h"
 
-int sine_wave_register(HmBand *band);
-int mda_dx10_register(HmBand *band);
+AlError sine_wave_register(HmBand *band);
+AlError mda_dx10_register(HmBand *band);
 
 #endif

@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "albase/common.h"
 #include "hamilton/synth.h"
 #include "hamilton/lib.h"
 
@@ -18,13 +19,13 @@ static const int NUM_CHANNELS = 4;
 
 typedef struct HmBand HmBand;
 
-int hm_band_init(HmBand **band);
+AlError hm_band_init(HmBand **band);
 void hm_band_free(HmBand *band);
 
 HmLib *hm_band_get_lib(HmBand *band);
 
 void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANNELS]);
-int hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type);
+AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type);
 
 const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls);
 float hm_band_get_channel_control(HmBand *band, int channel, int control);

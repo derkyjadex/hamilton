@@ -9,7 +9,9 @@
 
 #include <stdint.h>
 
-int hm_midi_init(void);
+#include "albase/common.h"
+
+AlError hm_midi_init(void);
 void hm_midi_free(void);
 int hm_midi_read(uint8_t *status, uint8_t *data1, uint8_t *data2);
 

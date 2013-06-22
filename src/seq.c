@@ -35,33 +35,25 @@ struct HmSeq {
 	HmMQ *out;
 };
 
-int hm_seq_init(HmSeq **result)
+AlError hm_seq_init(HmSeq **result)
 {
-	int error = 0;
+	BEGIN()
 
-	HmSeq *seq = malloc(sizeof(HmSeq));
-	if (!seq) {
-		error = 1;
-		goto end;
-	}
+	HmSeq *seq = NULL;
+	TRY(al_malloc(&seq, sizeof(HmSeq), 1));
 
 	seq->in = NULL;
 	seq->out = NULL;
 
-	error = mq_init(&seq->in, sizeof(InMessage), 128);
-	if (error) goto end;
-
-	error = mq_init(&seq->out, sizeof(OutMessage), 128);
-	if (error) goto end;
+	TRY(mq_init(&seq->in, sizeof(InMessage), 128));
+	TRY(mq_init(&seq->out, sizeof(OutMessage), 128));
 
 	*result = seq;
 
-end:
-	if (error) {
+	CATCH(
 		hm_seq_free(seq);
-	}
-
-	return error;
+	)
+	FINALLY()
 }
 
 void hm_seq_free(HmSeq *seq)

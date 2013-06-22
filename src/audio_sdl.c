@@ -40,18 +40,16 @@ static void callback(void *data, Uint8 *output, int length)
 	}
 }
 
-int hm_audio_init(HmBand *band)
+AlError hm_audio_init(HmBand *band)
 {
-	int error;
+	BEGIN()
 
 	started = SDL_CreateSemaphore(0);
-	if (!started) {
-		error = 1;
-		goto end;
-	}
+	if (!started)
+		THROW(AL_ERROR_GENERIC);
 
-	error = SDL_InitSubSystem(SDL_INIT_AUDIO);
-	if (error) goto end;
+	if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+		THROW(AL_ERROR_GENERIC);
 
 	SDL_AudioSpec desired = {
 		.freq = HM_SAMPLE_RATE,
@@ -62,15 +60,14 @@ int hm_audio_init(HmBand *band)
 		.userdata = band
 	}, obtained;
 
-	error = SDL_OpenAudio(&desired, &obtained);
+	if (SDL_OpenAudio(&desired, &obtained) != 0)
+		THROW(AL_ERROR_GENERIC);
 
-end:
-	if (error) {
+	CATCH(
 		fprintf(stderr, "Error opening audio: %s\n", SDL_GetError());
 		hm_audio_free();
-	}
-
-	return error;
+	)
+	FINALLY()
 }
 
 void hm_audio_free()

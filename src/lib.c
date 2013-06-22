@@ -16,26 +16,21 @@ struct HmLib {
 	int numTypes;
 };
 
-int hm_lib_init(HmLib **result)
+AlError hm_lib_init(HmLib **result)
 {
-	int error = 0;
+	BEGIN()
 
-	HmLib *lib = malloc(sizeof(HmLib));
-	if (!lib) {
-		error = 1;
-		goto end;
-	}
+	HmLib *lib = NULL;
+	TRY(al_malloc(&lib, sizeof(HmLib), 1));
 
 	lib->numTypes = 0;
 
 	*result = lib;
 
-end:
-	if (error) {
+	CATCH(
 		hm_lib_free(lib);
-	}
-
-	return error;
+	)
+	FINALLY()
 }
 
 void hm_lib_free(HmLib *lib)
@@ -45,15 +40,17 @@ void hm_lib_free(HmLib *lib)
 	}
 }
 
-int hm_lib_add_synth(HmLib *lib, const char *name, HmSynth *(*init)(const HmSynthType *type))
+AlError hm_lib_add_synth(HmLib *lib, const char *name, HmSynth *(*init)(const HmSynthType *type))
 {
+	BEGIN()
+
 	if (lib->numTypes == MAX_SYNTHS)
-		return 1;
+		THROW(AL_ERROR_GENERIC);
 
 	lib->types[lib->numTypes] = (HmSynthType){name, init};
 	lib->numTypes++;
 
-	return 0;
+	PASS()
 }
 
 const HmSynthType *hm_lib_get_synths(HmLib *lib, int *num)

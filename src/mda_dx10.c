@@ -437,7 +437,7 @@ static HmSynth *init(const HmSynthType *type)
 	return &this->base;
 }
 
-int mda_dx10_register(HmBand *band)
+AlError mda_dx10_register(HmBand *band)
 {
 	return hm_lib_add_synth(hm_band_get_lib(band), name, init);
 }

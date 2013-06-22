@@ -14,13 +14,10 @@
 
 static int run(HmBand *band)
 {
-	int error;
+	BEGIN()
 
-	error = hm_midi_init();
-	if (error) goto end;
-
-	error = hm_audio_init(band);
-	if (error) goto end;
+	TRY(hm_midi_init());
+	TRY(hm_audio_init(band));
 
 	hm_audio_start();
 
@@ -58,38 +55,31 @@ static int run(HmBand *band)
 		SDL_Delay(4);
 	}
 
-end:
-	hm_audio_free();
-	hm_midi_free();
-
-	return error;
+	PASS(
+		hm_audio_free();
+		hm_midi_free();
+	)
 }
 
 #undef main
 int main(int argc, char *argv[])
 {
-	int error;
+	BEGIN()
 
 	HmBand *band = NULL;
-	error = hm_band_init(&band);
-	if (error) goto end;
+	TRY(hm_band_init(&band));
 
-	error = sine_wave_register(band);
-	if (error) goto end;
-
-	error = mda_dx10_register(band);
-	if (error) goto end;
+	TRY(sine_wave_register(band));
+	TRY(mda_dx10_register(band));
 
 	int n;
 	const HmSynthType *synths = hm_lib_get_synths(hm_band_get_lib(band), &n);
 
-	error = hm_band_set_channel_synth(band, 0, &synths[1]);
-	if (error) goto end;
+	TRY(hm_band_set_channel_synth(band, 0, &synths[1]));
 
-	error = run(band);
+	TRY(run(band));
 
-end:
-	hm_band_free(band);
-
-	return error;
+	PASS(
+		hm_band_free(band);
+	)
 }

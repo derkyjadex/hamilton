@@ -52,15 +52,12 @@ struct HmBand {
 	Message message;
 };
 
-int hm_band_init(HmBand **result)
+AlError hm_band_init(HmBand **result)
 {
-	int error;
+	BEGIN()
 
-	HmBand *band = malloc(sizeof(HmBand));
-	if (!band) {
-		error = 1;
-		goto end;
-	}
+	HmBand *band = NULL;
+	TRY(al_malloc(&band, sizeof(HmBand), 1));
 
 	for (int i = 0; i < NUM_CHANNELS; i++) {
 		band->synths[i] = NULL;
@@ -71,20 +68,15 @@ int hm_band_init(HmBand **result)
 	band->mq = NULL;
 	band->hasMessage = false;
 
-	error = mq_init(&band->mq, sizeof(Message), 256);
-	if (error) goto end;
-
-	error = hm_lib_init(&band->lib);
-	if (error) goto end;
+	TRY(mq_init(&band->mq, sizeof(Message), 256));
+	TRY(hm_lib_init(&band->lib));
 
 	*result = band;
 
-end:
-	if (error) {
+	CATCH(
 		hm_band_free(band);
-	}
-
-	return error;
+	)
+	FINALLY()
 }
 
 void hm_band_free(HmBand *band)
@@ -113,8 +105,10 @@ void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANN
 	}
 }
 
-int hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type)
+AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type)
 {
+	BEGIN()
+
 	HmSynth **synth = &band->synths[channel];
 
 	if (*synth) {
@@ -123,9 +117,9 @@ int hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type
 
 	*synth = type->init(type);
 	if (!*synth)
-		return 1;
+		THROW(AL_ERROR_GENERIC);
 
-	return 0;
+	PASS()
 }
 
 const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls)

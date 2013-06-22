@@ -6,9 +6,11 @@
 
 #include <stdbool.h>
 
+#include "albase/common.h"
+
 typedef struct HmMQ HmMQ;
 
-int mq_init(HmMQ **result, size_t messageSize, size_t size);
+AlError mq_init(HmMQ **result, size_t messageSize, size_t size);
 void mq_free(HmMQ *mq);
 
 bool mq_push(HmMQ *mq, const void *message);

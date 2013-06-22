@@ -20,26 +20,19 @@ struct HmMQ {
 	char buffer[1];
 };
 
-int mq_init(HmMQ **result, size_t messageSize, size_t size)
+AlError mq_init(HmMQ **result, size_t messageSize, size_t size)
 {
-	int error = 0;
+	BEGIN()
 
-	if (((size - 1) & size) != 0) {
-		error = 1;
-		goto end;
-	}
+	if (((size - 1) & size) != 0)
+		THROW(AL_ERROR_GENERIC);
 
-	HmMQ *mq = malloc(sizeof(HmMQ) - 1 + messageSize * size);
-	if (!mq) {
-		error = 2;
-		goto end;
-	}
+	HmMQ *mq = NULL;
+	TRY(al_malloc(&mq, sizeof(HmMQ) - 1 + messageSize * size, 1));
 
 	mq->lock = SDL_CreateMutex();
-	if (!mq->lock) {
-		error = 3;
-		goto end;
-	}
+	if (!mq->lock)
+		THROW(AL_ERROR_GENERIC);
 
 	mq->messageSize = messageSize;
 	mq->size = size;
@@ -50,12 +43,10 @@ int mq_init(HmMQ **result, size_t messageSize, size_t size)
 
 	*result = mq;
 
-end:
-	if (error) {
+	CATCH(
 		mq_free(mq);
-	}
-
-	return 0;
+	)
+	FINALLY()
 }
 
 void mq_free(HmMQ *mq)
