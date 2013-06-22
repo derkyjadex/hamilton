@@ -422,6 +422,7 @@
 		1A7BEAB216FD1BA8008B3BCB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = "-lalbase";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -429,6 +430,7 @@
 		1A7BEAB316FD1BA8008B3BCB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = "-lalbase";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
