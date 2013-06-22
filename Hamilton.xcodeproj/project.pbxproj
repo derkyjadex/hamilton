@@ -30,6 +30,23 @@
 		1AC0D7731776059600290C88 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D7721776059600290C88 /* seq.c */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1AC0D7791776227A00290C88 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1AFBAD0F14DD4D1300E28C0A;
+			remoteInfo = albase;
+		};
+		1AC0D77B1776227A00290C88 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1A42FD87160DF06700807A51;
+			remoteInfo = alice;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		1A7BEAA916FD1BA8008B3BCB /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -89,6 +106,7 @@
 		1A7BEAC716FDB71E008B3BCB /* core_synths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = core_synths.h; sourceTree = "<group>"; };
 		1AC0D7711776050F00290C88 /* seq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seq.h; sourceTree = "<group>"; };
 		1AC0D7721776059600290C88 /* seq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = seq.c; sourceTree = "<group>"; };
+		1AC0D7741776227900290C88 /* Alice.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alice.xcodeproj; path = alice/Alice.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +150,7 @@
 		1A65C5DB16ED2E8D00C40716 = {
 			isa = PBXGroup;
 			children = (
+				1AC0D7741776227900290C88 /* Alice.xcodeproj */,
 				1A65C5E416ED2EB000C40716 /* Headers */,
 				1A65C5E316ED2EA800C40716 /* Source */,
 				1A65C62916ED30A900C40716 /* Supporting Files */,
@@ -234,6 +253,15 @@
 			name = portmidi;
 			sourceTree = "<group>";
 		};
+		1AC0D7751776227900290C88 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AC0D77A1776227A00290C88 /* libalbase.a */,
+				1AC0D77C1776227A00290C88 /* libalice.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -299,6 +327,12 @@
 			mainGroup = 1A65C5DB16ED2E8D00C40716;
 			productRefGroup = 1A65C5F216ED2F8300C40716 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 1AC0D7751776227900290C88 /* Products */;
+					ProjectRef = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1A554C6816FD014E007ACD72 /* hamilton */,
@@ -306,6 +340,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		1AC0D77A1776227A00290C88 /* libalbase.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libalbase.a;
+			remoteRef = 1AC0D7791776227A00290C88 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AC0D77C1776227A00290C88 /* libalice.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libalice.a;
+			remoteRef = 1AC0D77B1776227A00290C88 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1A554C6516FD014E007ACD72 /* Sources */ = {
