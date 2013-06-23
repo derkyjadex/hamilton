@@ -29,6 +29,23 @@ int cmd_add_note(lua_State *L)
 
 	TRY(hm_seq_add_note(seq, channel, &note));
 
-	CATCH_LUA(, "Error adding note")
+	CATCH_LUA(, "error adding note")
+	FINALLY_LUA(, 0)
+}
+
+int cmd_add_set_patch(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	HmSeq *seq = hm_band_get_seq(band);
+
+	int channel = (int)luaL_checkinteger(L, 1);
+	int time = (int)luaL_checkinteger(L, 2);
+	int patch = (int)luaL_checkinteger(L, 3);
+
+	TRY(hm_seq_set_patch(seq, channel, time, patch));
+
+	CATCH_LUA(, "error setting patch")
 	FINALLY_LUA(, 0)
 }

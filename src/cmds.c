@@ -22,6 +22,7 @@ static const luaL_Reg lib[] = {
 	{"send_cc", cmd_send_cc},
 	{"get_band_state", cmd_get_band_state},
 	{"add_note", cmd_add_note},
+	{"add_set_patch", cmd_add_set_patch},
 	{NULL, NULL}
 };
 

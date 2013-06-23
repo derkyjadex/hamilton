@@ -10,5 +10,6 @@
 #include "albase/lua.h"
 
 int cmd_add_note(lua_State *L);
+int cmd_add_set_patch(lua_State *L);
 
 #endif
