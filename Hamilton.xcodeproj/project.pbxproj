@@ -28,6 +28,8 @@
 		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
 		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
 		1AC0D7731776059600290C88 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D7721776059600290C88 /* seq.c */; };
+		1AC0D78D177710EC00290C88 /* cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78C177710EC00290C88 /* cmds.c */; };
+		1AC0D78F1777110800290C88 /* band_cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78E1777110800290C88 /* band_cmds.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,6 +109,10 @@
 		1AC0D7711776050F00290C88 /* seq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seq.h; sourceTree = "<group>"; };
 		1AC0D7721776059600290C88 /* seq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = seq.c; sourceTree = "<group>"; };
 		1AC0D7741776227900290C88 /* Alice.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alice.xcodeproj; path = alice/Alice.xcodeproj; sourceTree = "<group>"; };
+		1AC0D78C177710EC00290C88 /* cmds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cmds.c; sourceTree = "<group>"; };
+		1AC0D78E1777110800290C88 /* band_cmds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = band_cmds.c; sourceTree = "<group>"; };
+		1AC0D7901777112800290C88 /* cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cmds.h; sourceTree = "<group>"; };
+		1AC0D7931777133900290C88 /* band_cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band_cmds.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,6 +144,7 @@
 			children = (
 				1A65C62F16ED3A1200C40716 /* audio.h */,
 				1A65C62D16ED38B600C40716 /* band.h */,
+				1AC0D7901777112800290C88 /* cmds.h */,
 				1A7BEAC716FDB71E008B3BCB /* core_synths.h */,
 				1A65C62E16ED393300C40716 /* lib.h */,
 				1A7BEABA16FD1ECE008B3BCB /* midi.h */,
@@ -165,6 +172,9 @@
 				1A0F50EF176DD67D00D24C94 /* audio_jack.c */,
 				1A65C5E616ED2F1900C40716 /* audio_sdl.c */,
 				1A65C5E716ED2F1900C40716 /* band.c */,
+				1AC0D78E1777110800290C88 /* band_cmds.c */,
+				1AC0D7931777133900290C88 /* band_cmds.h */,
+				1AC0D78C177710EC00290C88 /* cmds.c */,
 				1A65C5E816ED2F1900C40716 /* lib.c */,
 				1A65C5EC16ED2F1900C40716 /* main.c */,
 				1A65C63216F5D49700C40716 /* mda_dx10.c */,
@@ -377,6 +387,8 @@
 				1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */,
 				1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */,
 				1AC0D7731776059600290C88 /* seq.c in Sources */,
+				1AC0D78D177710EC00290C88 /* cmds.c in Sources */,
+				1AC0D78F1777110800290C88 /* band_cmds.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,7 +434,11 @@
 		1A7BEAB216FD1BA8008B3BCB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				OTHER_LDFLAGS = "-lalbase";
+				OTHER_LDFLAGS = (
+					"-lalbase",
+					"-framework",
+					Lua,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -430,7 +446,11 @@
 		1A7BEAB316FD1BA8008B3BCB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				OTHER_LDFLAGS = "-lalbase";
+				OTHER_LDFLAGS = (
+					"-lalbase",
+					"-framework",
+					Lua,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
