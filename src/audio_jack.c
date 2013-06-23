@@ -25,8 +25,6 @@ static int process(jack_nframes_t nframes, void *arg)
 	void *midi = jack_port_get_buffer(midiPort, nframes);
 	float *audio = jack_port_get_buffer(audioPort, nframes);
 
-	hm_band_reset_time(band, 0);
-
 	jack_nframes_t numEvents = jack_midi_get_event_count(midi);
 	for (int i = 0; i < numEvents; i++) {
 		jack_midi_event_t event;
@@ -41,19 +39,19 @@ static int process(jack_nframes_t nframes, void *arg)
 
 		switch (type) {
 			case 0x8:
-				hm_band_send_note(band, event.time, channel, false, data1, data2 / 127.f);
+				hm_band_send_note(band, channel, false, data1, data2 / 127.f);
 				break;
 
 			case 0x9:
-				hm_band_send_note(band, event.time, channel, true, data1, data2 / 127.f);
+				hm_band_send_note(band, channel, true, data1, data2 / 127.f);
 				break;
 
 			case 0xB:
-				hm_band_send_cc(band, event.time, channel, data1, data2 / 127.f);
+				hm_band_send_cc(band, channel, data1, data2 / 127.f);
 				break;
 
 			case 0xC:
-				hm_band_send_patch(band, event.time, channel, data1);
+				hm_band_send_patch(band, channel, data1);
 				break;
 
 			default:

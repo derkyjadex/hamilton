@@ -20,6 +20,11 @@ static const int NUM_CHANNELS = 4;
 
 typedef struct HmBand HmBand;
 
+typedef struct {
+	bool playing;
+	uint32_t position;
+} HmBandState;
+
 AlError hm_band_init(HmBand **band);
 void hm_band_free(HmBand *band);
 
@@ -33,10 +38,15 @@ const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numCon
 float hm_band_get_channel_control(HmBand *band, int channel, int control);
 void hm_band_run(HmBand *band, float *buffer, int length);
 
-bool hm_band_reset_time(HmBand *band, uint32_t time);
-bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity);
-bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset);
-bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value);
-bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch);
+AlError hm_band_play(HmBand *band);
+AlError hm_band_pause(HmBand *band);
+AlError hm_band_seek(HmBand *band, uint32_t position);
+
+void hm_band_get_state(HmBand *band, HmBandState *state);
+
+bool hm_band_send_note(HmBand *band, int channel, bool state, int num, float velocity);
+bool hm_band_send_pitch(HmBand *band, int channel, float pitch);
+bool hm_band_send_cc(HmBand *band, int channel, int control, float value);
+bool hm_band_send_patch(HmBand *band, int channel, int patch);
 
 #endif

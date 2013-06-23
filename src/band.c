@@ -10,47 +10,41 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
-typedef enum {
-	NOTE_OFF = 0,
-	NOTE_ON = 1,
-	PITCH,
-	CONTROL,
-	PATCH,
-	RESET_TIME
-} MessageType;
-
-typedef union {
-	struct {
-		int num;
-		float velocity;
-	} note;
-	struct {
-		float offset;
-	} pitch;
-	struct {
-		int control;
-		float value;
-	} control;
-	int patch;
-	uint32_t time;
-} MessageData;
+#define SEQ_TO_SAMPLES(t) (t) * ((double)HM_SAMPLE_RATE / 10000.0)
+#define SAMPLES_TO_SEQ(n) (n) * (10000.0 / (double)HM_SAMPLE_RATE)
 
 typedef struct {
-	uint32_t time;
-	int channel;
-	MessageType type;
-	MessageData data;
-} Message;
+	enum {
+		PLAY,
+		PAUSE,
+		SEEK
+	} type;
+	union {
+		uint32_t position;
+	} data;
+} ToAudioMessage;
 
+typedef struct {
+	enum {
+		PLAYING,
+		PAUSED,
+		POSITION
+	} type;
+	union {
+		uint32_t position;
+	} data;
+} FromAudioMessage;
 
 struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
 	uint64_t time;
+	bool playing;
 	HmLib *lib;
 	HmSeq *seq;
-	HmMQ *mq;
-	bool hasMessage;
-	Message message;
+	HmMQ *toAudio;
+	HmMQ *fromAudio;
+
+	HmBandState lastState;
 };
 
 AlError hm_band_init(HmBand **result)
@@ -65,14 +59,21 @@ AlError hm_band_init(HmBand **result)
 	}
 
 	band->time = 0;
+	band->playing = false;
 	band->lib = NULL;
 	band->seq = NULL;
-	band->mq = NULL;
-	band->hasMessage = false;
+	band->toAudio = NULL;
+	band->fromAudio = NULL;
+
+	band->lastState = (HmBandState){
+		.playing = false,
+		.position = 0
+	};
 
 	TRY(hm_lib_init(&band->lib));
 	TRY(hm_seq_init(&band->seq));
-	TRY(mq_init(&band->mq, sizeof(Message), 256));
+	TRY(mq_init(&band->toAudio, sizeof(ToAudioMessage), 256));
+	TRY(mq_init(&band->fromAudio, sizeof(FromAudioMessage), 256));
 
 	*result = band;
 
@@ -87,7 +88,8 @@ void hm_band_free(HmBand *band)
 	if (band) {
 		hm_lib_free(band->lib);
 		hm_seq_free(band->seq);
-		mq_free(band->mq);
+		mq_free(band->toAudio);
+		mq_free(band->fromAudio);
 		free(band);
 	}
 }
@@ -143,35 +145,59 @@ float hm_band_get_channel_control(HmBand *band, int channel, int control)
 	return synth->getControl(synth, control);
 }
 
-static void process_message(HmBand *band)
+static void process_messages(HmBand *band)
 {
-	MessageData *data = &band->message.data;
-	HmSynth *synth = band->synths[band->message.channel];
+	FromAudioMessage outMessage;
+	ToAudioMessage message;
+	while (mq_pop(band->toAudio, &message)) {
+		switch (message.type) {
+			case PLAY:
+				band->playing = true;
+				outMessage = (FromAudioMessage){
+					.type = PLAYING,
+				};
+				mq_push(band->fromAudio, &outMessage);
+				break;
+
+			case PAUSE:
+				band->playing = false;
+				outMessage = (FromAudioMessage){
+					.type = PAUSED
+				};
+				mq_push(band->fromAudio, &outMessage);
+				break;
+
+			case SEEK:
+				band->time = SEQ_TO_SAMPLES(message.data.position);
+				break;
+		}
+	}
+}
+
+static void process_event(HmBand *band, HmEvent *event)
+{
+	HmSynth *synth = band->synths[event->channel];
 	if (!synth)
 		return;
 
-	switch (band->message.type) {
-		case RESET_TIME:
-			band->time = data->time;
+	switch (event->type) {
+		case HM_EV_NOTE_OFF:
+			synth->stopNote(synth, event->data.note.num);
 			break;
 
-		case NOTE_OFF:
-			synth->stopNote(synth, data->note.num);
+		case HM_EV_NOTE_ON:
+			synth->startNote(synth, event->data.note.num, event->data.note.velocity);
 			break;
 
-		case NOTE_ON:
-			synth->startNote(synth, data->note.num, data->note.velocity);
+		case HM_EV_PITCH:
 			break;
 
-		case PITCH:
+		case HM_EV_CONTROL:
+			synth->setControl(synth, event->data.control.control, event->data.control.value);
 			break;
 
-		case CONTROL:
-			synth->setControl(synth, data->control.control, data->control.value);
-			break;
-
-		case PATCH:
-			synth->setPatch(synth, data->patch);
+		case HM_EV_PATCH:
+			synth->setPatch(synth, event->data.patch);
 			break;
 	}
 }
@@ -182,22 +208,36 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 		buffer[i] = 0;
 	}
 
-	do {
-		if (!band->hasMessage) {
-			band->hasMessage = mq_pop(band->mq, &band->message);
-		}
+	process_messages(band);
 
-		while (band->hasMessage && band->message.time <= band->time) {
-			process_message(band);
-			band->hasMessage = mq_pop(band->mq, &band->message);
+	uint32_t time = SAMPLES_TO_SEQ(band->time);
+	uint32_t start = time;
+	uint32_t end = start + SAMPLES_TO_SEQ(length);
+
+	HmEvent events[128];
+	int numEvents;
+	numEvents = hm_seq_get_events(band->seq, events, sizeof(events), start, end);
+	int event = 0;
+
+	if (!band->playing) {
+		numEvents = 0;
+	}
+
+	bool eventUpcoming = numEvents > 0;
+
+	do {
+		while (eventUpcoming && events[event].time <= time) {
+			process_event(band, &events[event]);
+			event++;
+			eventUpcoming = event < numEvents;
 		}
 
 		int samples;
-		if (band->hasMessage) {
-			samples = (int)(band->message.time - band->time);
+		if (eventUpcoming) {
+			samples = SEQ_TO_SAMPLES(events[event].time - time);
 		}
 
-		if (!band->hasMessage || samples > length) {
+		if (!eventUpcoming || samples > length) {
 			samples = length;
 		}
 
@@ -208,32 +248,103 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 			}
 		}
 
-		band->time += samples;
+		if (eventUpcoming) {
+			time = events[event].time;
+		}
+
+		if (band->playing) {
+			band->time += samples;
+		}
 		buffer += samples;
 		length -= samples;
 
 	} while (length);
+
+	FromAudioMessage message = {
+		.type = POSITION,
+		.data = {
+			.position = time
+		}
+	};
+	mq_push(band->fromAudio, &message);
 }
 
-bool hm_band_reset_time(HmBand *band, uint32_t time)
+AlError hm_band_play(HmBand *band)
 {
-	Message message = {
-		.time = 0,
-		.type = RESET_TIME,
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = PLAY
+	};
+
+	if (!mq_push(band->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
+AlError hm_band_pause(HmBand *band)
+{
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = PAUSE
+	};
+
+	if (!mq_push(band->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
+AlError hm_band_seek(HmBand *band, uint32_t	position)
+{
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = SEEK,
 		.data = {
-			.time = time
+			.position = position
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	if (!mq_push(band->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
 }
 
-bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int num, float velocity)
+void hm_band_get_state(HmBand *band, HmBandState *state)
 {
-	Message message = {
-		.time = time,
-		.type = (state) ? NOTE_ON : NOTE_OFF,
+	HmBandState newState = band->lastState;
+
+	FromAudioMessage message;
+	while (mq_pop(band->fromAudio, &message)) {
+		switch (message.type) {
+			case PLAYING:
+				newState.playing = true;
+				break;
+
+			case PAUSED:
+				newState.playing = false;
+				break;
+
+			case POSITION:
+				newState.position = message.data.position;
+				break;
+		}
+	}
+
+	band->lastState = newState;
+	*state = newState;
+}
+
+bool hm_band_send_note(HmBand *band, int channel, bool state, int num, float velocity)
+{
+	HmEvent event = {
+		.time = 0,
 		.channel = channel,
+		.type = (state) ? HM_EV_NOTE_ON : HM_EV_NOTE_OFF,
 		.data = {
 			.note = {
 				.num = num,
@@ -242,31 +353,29 @@ bool hm_band_send_note(HmBand *band, uint32_t time, int channel, bool state, int
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return false;
 }
 
-bool hm_band_send_pitch(HmBand *band, uint32_t time, int channel, float offset)
+bool hm_band_send_pitch(HmBand *band, int channel, float pitch)
 {
-	Message message = {
-		.time = time,
+	HmEvent event = {
+		.time = 0,
 		.channel = channel,
-		.type = PITCH,
+		.type = HM_EV_PITCH,
 		.data = {
-			.pitch = {
-				.offset = offset
-			}
+			.pitch = pitch
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return false;
 }
 
-bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, float value)
+bool hm_band_send_cc(HmBand *band, int channel, int control, float value)
 {
-	Message message = {
-		.time = time,
+	HmEvent event = {
+		.time = 0,
 		.channel = channel,
-		.type = CONTROL,
+		.type = HM_EV_PITCH,
 		.data = {
 			.control = {
 				.control = control,
@@ -275,19 +384,19 @@ bool hm_band_send_cc(HmBand *band, uint32_t time, int channel, int control, floa
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return false;
 }
 
-bool hm_band_send_patch(HmBand *band, uint32_t time, int channel, int patch)
+bool hm_band_send_patch(HmBand *band, int channel, int patch)
 {
-	Message message = {
-		.time = time,
+	HmEvent event = {
+		.time = 0,
 		.channel = channel,
-		.type = PATCH,
+		.type = HM_EV_PITCH,
 		.data = {
 			.patch = patch
 		}
 	};
 
-	return mq_push(band->mq, &message);
+	return false;
 }

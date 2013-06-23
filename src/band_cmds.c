@@ -46,7 +46,7 @@ int cmd_send_cc(lua_State *L)
 	int control = (int)luaL_checkinteger(L, 2);
 	float value = luaL_checknumber(L, 3);
 
-	hm_band_send_cc(band, 0, channel, control, value);
+	hm_band_send_cc(band, channel, control, value);
 
 	return 0;
 }
