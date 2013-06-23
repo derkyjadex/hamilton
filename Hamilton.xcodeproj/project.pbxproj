@@ -30,6 +30,7 @@
 		1AC0D7731776059600290C88 /* seq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D7721776059600290C88 /* seq.c */; };
 		1AC0D78D177710EC00290C88 /* cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78C177710EC00290C88 /* cmds.c */; };
 		1AC0D78F1777110800290C88 /* band_cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78E1777110800290C88 /* band_cmds.c */; };
+		1AC0D796177716E900290C88 /* seq_cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D795177716E900290C88 /* seq_cmds.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,6 +114,8 @@
 		1AC0D78E1777110800290C88 /* band_cmds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = band_cmds.c; sourceTree = "<group>"; };
 		1AC0D7901777112800290C88 /* cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cmds.h; sourceTree = "<group>"; };
 		1AC0D7931777133900290C88 /* band_cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band_cmds.h; sourceTree = "<group>"; };
+		1AC0D794177716DD00290C88 /* seq_cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seq_cmds.h; sourceTree = "<group>"; };
+		1AC0D795177716E900290C88 /* seq_cmds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = seq_cmds.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +188,8 @@
 				1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */,
 				1A65C63416F63B8B00C40716 /* portmidi */,
 				1AC0D7721776059600290C88 /* seq.c */,
+				1AC0D795177716E900290C88 /* seq_cmds.c */,
+				1AC0D794177716DD00290C88 /* seq_cmds.h */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
 			);
 			name = Source;
@@ -389,6 +394,7 @@
 				1AC0D7731776059600290C88 /* seq.c in Sources */,
 				1AC0D78D177710EC00290C88 /* cmds.c in Sources */,
 				1AC0D78F1777110800290C88 /* band_cmds.c in Sources */,
+				1AC0D796177716E900290C88 /* seq_cmds.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

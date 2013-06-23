@@ -9,6 +9,7 @@
 #include "hamilton/band.h"
 
 #include "band_cmds.h"
+#include "seq_cmds.h"
 
 AlLuaKey bandKey;
 
@@ -16,6 +17,7 @@ static const luaL_Reg lib[] = {
 	{"get_synths", cmd_get_synths},
 	{"set_synth", cmd_set_synth},
 	{"send_cc", cmd_send_cc},
+	{"add_note", cmd_add_note},
 	{NULL, NULL}
 };
 
@@ -27,4 +29,12 @@ int luaopen_hamilton(lua_State *L)
 	luaL_setfuncs(L, lib, 1);
 
 	return 1;
+}
+
+void hm_load_cmds(lua_State *L, HmBand *band)
+{
+	lua_pushlightuserdata(L, &bandKey);
+	lua_pushlightuserdata(L, band);
+	lua_settable(L, LUA_REGISTRYINDEX);
+	luaL_requiref(L, "hamilton", luaopen_hamilton, false);
 }

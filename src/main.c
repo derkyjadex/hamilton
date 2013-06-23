@@ -11,6 +11,9 @@
 #include "hamilton/audio.h"
 #include "hamilton/midi.h"
 #include "hamilton/core_synths.h"
+#include "hamilton/cmds.h"
+#include "albase/lua.h"
+#include "albase/script.h"
 
 static int run(HmBand *band)
 {
@@ -67,7 +70,11 @@ int main(int argc, char *argv[])
 	BEGIN()
 
 	HmBand *band = NULL;
+	lua_State *L = NULL;
+
 	TRY(hm_band_init(&band));
+	TRY(al_script_init(&L));
+	hm_load_cmds(L, band);
 
 	TRY(sine_wave_register(band));
 	TRY(mda_dx10_register(band));
@@ -81,5 +88,6 @@ int main(int argc, char *argv[])
 
 	PASS(
 		hm_band_free(band);
+		lua_close(L);
 	)
 }
