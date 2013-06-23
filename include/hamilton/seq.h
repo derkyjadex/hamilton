@@ -49,20 +49,18 @@ typedef struct {
 	float velocity;
 } HmNoteData;
 
-typedef enum {
-	HM_SEQ_NOTE_ADDED,
-	HM_SEQ_NOTE_REMOVED,
-	HM_SEQ_NOTE_UPDATED,
-	HM_SEQ_PITCH_SET,
-	HM_SEQ_PITCH_CLEARED,
-	HM_SEQ_CONTROL_SET,
-	HM_SEQ_CONTROL_CLEARED,
-	HM_SEQ_PATCH_SET,
-	HM_SEQ_PATCH_CLEARED
-} HmSeqMessageType;
-
 typedef struct {
-	HmSeqMessageType type;
+	enum {
+		HM_SEQ_NOTE_ADDED,
+		HM_SEQ_NOTE_REMOVED,
+		HM_SEQ_NOTE_UPDATED,
+		HM_SEQ_PITCH_SET,
+		HM_SEQ_PITCH_CLEARED,
+		HM_SEQ_CONTROL_SET,
+		HM_SEQ_CONTROL_CLEARED,
+		HM_SEQ_PATCH_SET,
+		HM_SEQ_PATCH_CLEARED
+	} type;
 	uint32_t time;
 	int channel;
 	union {

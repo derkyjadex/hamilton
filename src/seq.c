@@ -22,20 +22,18 @@ struct HmNote {
 	EventNode on, off;
 };
 
-typedef enum {
-	ADD_NOTE,
-	REMOVE_NOTE,
-	UPDATE_NOTE,
-	SET_PITCH,
-	CLEAR_PITCH,
-	SET_CONTROL,
-	CLEAR_CONTROL,
-	SET_PATCH,
-	CLEAR_PATCH
-} ToAudioMessageType;
-
 typedef struct {
-	ToAudioMessageType type;
+	enum {
+		ADD_NOTE,
+		REMOVE_NOTE,
+		UPDATE_NOTE,
+		SET_PITCH,
+		CLEAR_PITCH,
+		SET_CONTROL,
+		CLEAR_CONTROL,
+		SET_PATCH,
+		CLEAR_PATCH
+	} type;
 
 	union {
 		HmNote *addNote, *removeNote;
@@ -60,13 +58,11 @@ typedef struct {
 	} data;
 } ToAudioMessage;
 
-typedef enum {
-	FREE_PTR,
-	SEQ_MESSAGE
-} FromAudioMessageType;
-
 typedef struct {
-	FromAudioMessageType type;
+	enum {
+		FREE_PTR,
+		SEQ_MESSAGE
+	} type;
 	union {
 		void *ptr;
 		HmSeqMessage message;
