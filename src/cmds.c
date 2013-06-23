@@ -16,13 +16,25 @@ AlLuaKey bandKey;
 static const luaL_Reg lib[] = {
 	{"get_synths", cmd_get_synths},
 	{"set_synth", cmd_set_synth},
+
 	{"play", cmd_play},
 	{"pause", cmd_pause},
 	{"seek", cmd_seek},
+
 	{"send_cc", cmd_send_cc},
 	{"get_band_state", cmd_get_band_state},
+
 	{"add_note", cmd_add_note},
+	{"remove_note", cmd_remove_note},
+	{"update_note", cmd_update_note},
+	{"add_set_pitch", cmd_add_set_pitch},
+	{"clear_set_pitch", cmd_clear_set_pitch},
+	{"add_set_control", cmd_add_set_control},
+	{"clear_set_control", cmd_clear_set_control},
 	{"add_set_patch", cmd_add_set_patch},
+	{"clear_set_patch", cmd_clear_set_patch},
+
+	{"get_seq_messages", cmd_get_seq_messages},
 	{NULL, NULL}
 };
 

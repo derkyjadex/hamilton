@@ -10,6 +10,15 @@
 #include "albase/lua.h"
 
 int cmd_add_note(lua_State *L);
+int cmd_remove_note(lua_State *L);
+int cmd_update_note(lua_State *L);
+int cmd_add_set_pitch(lua_State *L);
+int cmd_clear_set_pitch(lua_State *L);
+int cmd_add_set_control(lua_State *L);
+int cmd_clear_set_control(lua_State *L);
 int cmd_add_set_patch(lua_State *L);
+int cmd_clear_set_patch(lua_State *L);
+
+int cmd_get_seq_messages(lua_State *L);
 
 #endif
