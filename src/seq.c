@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "hamilton/seq.h"
 #include "mq.h"
@@ -103,9 +104,33 @@ AlError hm_seq_init(HmSeq **result)
 	FINALLY()
 }
 
+static void remove_event(HmSeq *seq, EventNode *event);
+static void update_sequence(HmSeq *seq);
+
 void hm_seq_free(HmSeq *seq)
 {
 	if (seq) {
+		update_sequence(seq);
+		HmSeqMessage message;
+		while (hm_seq_pop_message(seq, &message)) { }
+
+		EventNode *event = seq->head;
+		while (event) {
+			void *freePtr;
+
+			if (event->event.type == HM_EV_NOTE_ON) {
+				HmNote *note = (void *)event - offsetof(HmNote, on);
+				remove_event(seq, &note->off);
+				freePtr = note;
+
+			} else {
+				freePtr = event;
+			}
+
+			event = event->next;
+			free(freePtr);
+		}
+
 		mq_free(seq->toAudio);
 		mq_free(seq->fromAudio);
 		free(seq);
