@@ -13,6 +13,7 @@
 #include "albase/common.h"
 #include "hamilton/synth.h"
 #include "hamilton/lib.h"
+#include "hamilton/seq.h"
 
 static const int HM_SAMPLE_RATE = 48000;
 static const int NUM_CHANNELS = 4;
@@ -23,6 +24,7 @@ AlError hm_band_init(HmBand **band);
 void hm_band_free(HmBand *band);
 
 HmLib *hm_band_get_lib(HmBand *band);
+HmSeq *hm_band_get_seq(HmBand *band);
 
 void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANNELS]);
 AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type);

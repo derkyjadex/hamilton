@@ -47,6 +47,7 @@ struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
 	uint64_t time;
 	HmLib *lib;
+	HmSeq *seq;
 	HmMQ *mq;
 	bool hasMessage;
 	Message message;
@@ -65,11 +66,13 @@ AlError hm_band_init(HmBand **result)
 
 	band->time = 0;
 	band->lib = NULL;
+	band->seq = NULL;
 	band->mq = NULL;
 	band->hasMessage = false;
 
-	TRY(mq_init(&band->mq, sizeof(Message), 256));
 	TRY(hm_lib_init(&band->lib));
+	TRY(hm_seq_init(&band->seq));
+	TRY(mq_init(&band->mq, sizeof(Message), 256));
 
 	*result = band;
 
@@ -83,6 +86,7 @@ void hm_band_free(HmBand *band)
 {
 	if (band) {
 		hm_lib_free(band->lib);
+		hm_seq_free(band->seq);
 		mq_free(band->mq);
 		free(band);
 	}
@@ -91,6 +95,11 @@ void hm_band_free(HmBand *band)
 HmLib *hm_band_get_lib(HmBand *band)
 {
 	return band->lib;
+}
+
+HmSeq *hm_band_get_seq(HmBand *band)
+{
+	return band->seq;
 }
 
 void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANNELS])
