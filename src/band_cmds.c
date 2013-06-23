@@ -39,6 +39,42 @@ int cmd_set_synth(lua_State *L)
 	return 0;
 }
 
+int cmd_play(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	TRY(hm_band_play(band));
+
+	CATCH_LUA(, "error starting band")
+	FINALLY_LUA(, 0)
+}
+
+int cmd_pause(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	TRY(hm_band_pause(band));
+
+	CATCH_LUA(, "error pausing band")
+	FINALLY_LUA(, 0)
+}
+
+int cmd_seek(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+
+	lua_Number position = luaL_checknumber(L, 1);
+
+	TRY(hm_band_seek(band, position));
+
+	CATCH_LUA(, "error pausing band")
+	FINALLY_LUA(, 0)
+}
+
 int cmd_send_cc(lua_State *L)
 {
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
@@ -49,4 +85,24 @@ int cmd_send_cc(lua_State *L)
 	hm_band_send_cc(band, channel, control, value);
 
 	return 0;
+}
+
+int cmd_get_band_state(lua_State *L)
+{
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+
+	HmBandState state;
+	hm_band_get_state(band, &state);
+
+	lua_newtable(L);
+
+	lua_pushliteral(L, "playing");
+	lua_pushboolean(L, state.playing);
+	lua_settable(L, -3);
+
+	lua_pushliteral(L, "position");
+	lua_pushinteger(L, state.position);
+	lua_settable(L, -3);
+
+	return 1;
 }

@@ -16,7 +16,11 @@ AlLuaKey bandKey;
 static const luaL_Reg lib[] = {
 	{"get_synths", cmd_get_synths},
 	{"set_synth", cmd_set_synth},
+	{"play", cmd_play},
+	{"pause", cmd_pause},
+	{"seek", cmd_seek},
 	{"send_cc", cmd_send_cc},
+	{"get_band_state", cmd_get_band_state},
 	{"add_note", cmd_add_note},
 	{NULL, NULL}
 };

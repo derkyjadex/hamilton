@@ -11,6 +11,10 @@
 
 int cmd_get_synths(lua_State *L);
 int cmd_set_synth(lua_State *L);
+int cmd_play(lua_State *L);
+int cmd_pause(lua_State *L);
+int cmd_seek(lua_State *L);
 int cmd_send_cc(lua_State *L);
+int cmd_get_band_state(lua_State *L);
 
 #endif
