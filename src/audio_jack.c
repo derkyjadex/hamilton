@@ -87,6 +87,15 @@ AlError hm_audio_init(HmBand *band)
 	if (jack_activate(client) != 0)
 		THROW(AL_ERROR_GENERIC)
 
+	const char **ports = jack_get_ports(client, NULL, NULL, JackPortIsPhysical | JackPortIsInput);
+	if (ports) {
+		for (int i = 0; ports[i]; i++) {
+			jack_connect(client, jack_port_name(audioPort), ports[i]);
+		}
+
+		free(ports);
+	}
+
 	CATCH(
 		hm_audio_free();
 	)
