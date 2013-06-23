@@ -493,7 +493,7 @@ static void update_sequence(HmSeq *seq)
 				break;
 
 			case SET_PATCH:
-				set_pitch(seq, message.data.setPatch);
+				set_patch(seq, message.data.setPatch);
 				break;
 
 			case CLEAR_PATCH:
