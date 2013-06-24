@@ -341,7 +341,7 @@ void hm_band_get_state(HmBand *band, HmBandState *state)
 
 bool hm_band_send_note(HmBand *band, int channel, bool state, int num, float velocity)
 {
-	HmEvent event = {
+/*	HmEvent event = {
 		.time = 0,
 		.channel = channel,
 		.type = (state) ? HM_EV_NOTE_ON : HM_EV_NOTE_OFF,
@@ -352,13 +352,13 @@ bool hm_band_send_note(HmBand *band, int channel, bool state, int num, float vel
 			}
 		}
 	};
-
+*/
 	return false;
 }
 
 bool hm_band_send_pitch(HmBand *band, int channel, float pitch)
 {
-	HmEvent event = {
+/*	HmEvent event = {
 		.time = 0,
 		.channel = channel,
 		.type = HM_EV_PITCH,
@@ -366,13 +366,13 @@ bool hm_band_send_pitch(HmBand *band, int channel, float pitch)
 			.pitch = pitch
 		}
 	};
-
+*/
 	return false;
 }
 
 bool hm_band_send_cc(HmBand *band, int channel, int control, float value)
 {
-	HmEvent event = {
+/*	HmEvent event = {
 		.time = 0,
 		.channel = channel,
 		.type = HM_EV_PITCH,
@@ -383,13 +383,13 @@ bool hm_band_send_cc(HmBand *band, int channel, int control, float value)
 			}
 		}
 	};
-
+*/
 	return false;
 }
 
 bool hm_band_send_patch(HmBand *band, int channel, int patch)
 {
-	HmEvent event = {
+/*	HmEvent event = {
 		.time = 0,
 		.channel = channel,
 		.type = HM_EV_PITCH,
@@ -397,6 +397,6 @@ bool hm_band_send_patch(HmBand *band, int channel, int patch)
 			.patch = patch
 		}
 	};
-
+*/
 	return false;
 }
