@@ -10,12 +10,6 @@
 		1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0F50ED176DD65800D24C94 /* Jackmp.framework */; };
 		1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50EF176DD67D00D24C94 /* audio_jack.c */; };
 		1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50F7176DDFDD00D24C94 /* midi_jack.c */; };
-		1A7BEA8F16FD126D008B3BCB /* finddefault.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63516F63C1C00C40716 /* finddefault.c */; };
-		1A7BEA9016FD126D008B3BCB /* pmmac.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63616F63C1C00C40716 /* pmmac.c */; };
-		1A7BEA9116FD126D008B3BCB /* pmmacosxcm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63716F63C1C00C40716 /* pmmacosxcm.c */; };
-		1A7BEA9216FD126D008B3BCB /* pmutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63F16F63C5600C40716 /* pmutil.c */; };
-		1A7BEA9316FD126D008B3BCB /* portmidi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C64016F63C5600C40716 /* portmidi.c */; };
-		1A7BEA9416FD126D008B3BCB /* ptmacosx_mach.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63D16F63C3B00C40716 /* ptmacosx_mach.c */; };
 		1A7BEA9616FD1275008B3BCB /* band.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E716ED2F1900C40716 /* band.c */; };
 		1A7BEA9716FD1275008B3BCB /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E816ED2F1900C40716 /* lib.c */; };
 		1A7BEA9916FD1275008B3BCB /* mq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E916ED2F1900C40716 /* mq.c */; };
@@ -378,12 +372,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A7BEA8F16FD126D008B3BCB /* finddefault.c in Sources */,
-				1A7BEA9016FD126D008B3BCB /* pmmac.c in Sources */,
-				1A7BEA9116FD126D008B3BCB /* pmmacosxcm.c in Sources */,
-				1A7BEA9216FD126D008B3BCB /* pmutil.c in Sources */,
-				1A7BEA9316FD126D008B3BCB /* portmidi.c in Sources */,
-				1A7BEA9416FD126D008B3BCB /* ptmacosx_mach.c in Sources */,
 				1A7BEA9616FD1275008B3BCB /* band.c in Sources */,
 				1A7BEA9716FD1275008B3BCB /* lib.c in Sources */,
 				1A7BEA9916FD1275008B3BCB /* mq.c in Sources */,
