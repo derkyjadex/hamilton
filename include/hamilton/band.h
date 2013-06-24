@@ -23,6 +23,9 @@ typedef struct HmBand HmBand;
 typedef struct {
 	bool playing;
 	uint32_t position;
+	bool looping;
+	uint32_t loopStart;
+	uint32_t loopEnd;
 } HmBandState;
 
 AlError hm_band_init(HmBand **band);
@@ -41,6 +44,9 @@ void hm_band_run(HmBand *band, float *buffer, int length);
 AlError hm_band_play(HmBand *band);
 AlError hm_band_pause(HmBand *band);
 AlError hm_band_seek(HmBand *band, uint32_t position);
+
+AlError hm_band_set_looping(HmBand *band, bool looping);
+AlError hm_band_set_loop(HmBand *band, uint32_t start, uint32_t end);
 
 void hm_band_get_state(HmBand *band, HmBandState *state);
 

@@ -17,10 +17,16 @@ typedef struct {
 	enum {
 		PLAY,
 		PAUSE,
-		SEEK
+		SEEK,
+		SET_LOOPING,
+		SET_LOOP
 	} type;
 	union {
 		uint32_t position;
+		bool looping;
+		struct {
+			uint32_t start, end;
+		} loop;
 	} data;
 } ToAudioMessage;
 
@@ -28,10 +34,16 @@ typedef struct {
 	enum {
 		PLAYING,
 		PAUSED,
-		POSITION
+		POSITION,
+		LOOPING_SET,
+		LOOP_SET
 	} type;
 	union {
 		uint32_t position;
+		bool looping;
+		struct {
+			uint32_t start, end;
+		} loop;
 	} data;
 } FromAudioMessage;
 
@@ -39,6 +51,10 @@ struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
 	uint64_t time;
 	bool playing;
+	bool looping;
+	uint64_t loopStart;
+	uint64_t loopEnd;
+
 	HmLib *lib;
 	HmSeq *seq;
 	HmMQ *toAudio;
@@ -60,6 +76,9 @@ AlError hm_band_init(HmBand **result)
 
 	band->time = 0;
 	band->playing = false;
+	band->looping = false;
+	band->loopStart = 0;
+	band->loopEnd = 0;
 	band->lib = NULL;
 	band->seq = NULL;
 	band->toAudio = NULL;
@@ -67,7 +86,10 @@ AlError hm_band_init(HmBand **result)
 
 	band->lastState = (HmBandState){
 		.playing = false,
-		.position = 0
+		.position = 0,
+		.looping = false,
+		.loopStart = 0,
+		.loopEnd = 0
 	};
 
 	TRY(hm_lib_init(&band->lib));
@@ -169,6 +191,32 @@ static void process_messages(HmBand *band)
 
 			case SEEK:
 				band->time = SEQ_TO_SAMPLES(message.data.position);
+				break;
+
+			case SET_LOOPING:
+				band->looping = message.data.looping;
+				outMessage = (FromAudioMessage){
+					.type = LOOPING_SET,
+					.data = {
+						.looping = message.data.looping
+					}
+				};
+				mq_push(band->fromAudio, &outMessage);
+				break;
+
+			case SET_LOOP:
+				band->loopStart = SEQ_TO_SAMPLES(message.data.loop.start);
+				band->loopEnd = SEQ_TO_SAMPLES(message.data.loop.end);
+				outMessage = (FromAudioMessage){
+					.type = LOOP_SET,
+					.data = {
+						.loop = {
+							.start = message.data.loop.start,
+							.end = message.data.loop.end
+						}
+					}
+				};
+				mq_push(band->fromAudio, &outMessage);
 				break;
 		}
 	}
@@ -314,6 +362,43 @@ AlError hm_band_seek(HmBand *band, uint32_t	position)
 	PASS()
 }
 
+AlError hm_band_set_looping(HmBand *band, bool looping)
+{
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = SET_LOOPING,
+		.data = {
+			.looping = looping
+		}
+	};
+
+	if (!mq_push(band->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
+AlError hm_band_set_loop(HmBand *band, uint32_t start, uint32_t end)
+{
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = SET_LOOP,
+		.data = {
+			.loop = {
+				.start = start,
+				.end = end
+			}
+		}
+	};
+
+	if (!mq_push(band->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
 void hm_band_get_state(HmBand *band, HmBandState *state)
 {
 	HmBandState newState = band->lastState;
@@ -331,6 +416,15 @@ void hm_band_get_state(HmBand *band, HmBandState *state)
 
 			case POSITION:
 				newState.position = message.data.position;
+				break;
+
+			case LOOPING_SET:
+				newState.looping = message.data.looping;
+				break;
+
+			case LOOP_SET:
+				newState.loopStart = message.data.loop.start;
+				newState.loopEnd = message.data.loop.end;
 				break;
 		}
 	}
