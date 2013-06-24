@@ -274,6 +274,9 @@ static void update_note(HmSeq *seq, HmNote *note, HmNoteData *noteData)
 	}
 
 	note->data = *noteData;
+	note->on.event.data.note.num = noteData->num;
+	note->on.event.data.note.velocity = noteData->velocity;
+	note->off.event.data.note.num = noteData->num;
 
 	FromAudioMessage message = {
 		.type = SEQ_MESSAGE,
