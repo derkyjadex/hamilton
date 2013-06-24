@@ -75,6 +75,36 @@ int cmd_seek(lua_State *L)
 	FINALLY_LUA(, 0)
 }
 
+int cmd_set_looping(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+
+	luaL_checkany(L, 1);
+	bool looping = lua_toboolean(L, 1);
+
+	TRY(hm_band_set_looping(band, looping));
+
+	CATCH_LUA(, "error setting looping")
+	FINALLY_LUA(, 0)
+}
+
+int cmd_set_loop(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+
+	lua_Number start = luaL_checknumber(L, 1);
+	lua_Number end = luaL_checknumber(L, 2);
+
+	TRY(hm_band_set_loop(band, start, end));
+
+	CATCH_LUA(, "error pausing band")
+	FINALLY_LUA(, 0)
+}
+
 int cmd_send_cc(lua_State *L)
 {
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
@@ -102,6 +132,18 @@ int cmd_get_band_state(lua_State *L)
 
 	lua_pushliteral(L, "position");
 	lua_pushinteger(L, state.position);
+	lua_settable(L, -3);
+
+	lua_pushliteral(L, "looping");
+	lua_pushboolean(L, state.looping);
+	lua_settable(L, -3);
+
+	lua_pushliteral(L, "loopStart");
+	lua_pushnumber(L, state.loopStart);
+	lua_settable(L, -3);
+
+	lua_pushliteral(L, "loopEnd");
+	lua_pushnumber(L, state.loopEnd);
 	lua_settable(L, -3);
 
 	return 1;

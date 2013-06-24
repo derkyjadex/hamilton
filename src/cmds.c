@@ -20,6 +20,8 @@ static const luaL_Reg lib[] = {
 	{"play", cmd_play},
 	{"pause", cmd_pause},
 	{"seek", cmd_seek},
+	{"set_looping", cmd_set_looping},
+	{"set_loop", cmd_set_loop},
 
 	{"send_cc", cmd_send_cc},
 	{"get_band_state", cmd_get_band_state},
