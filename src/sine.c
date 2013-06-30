@@ -41,6 +41,8 @@ struct LP2 {
 typedef struct SineSynth {
 	HmSynth base;
 
+	float sampleRate;
+
 	int note;
 
 	struct Osc osc;
@@ -57,9 +59,9 @@ static void osc_init(struct Osc *osc)
 	osc->step = 0;
 }
 
-static void osc_set_freq(struct Osc *osc, float freq)
+static void osc_set_freq(struct Osc *osc, float freq, float sampleRate)
 {
-	osc->step = freq / HM_SAMPLE_RATE;
+	osc->step = freq / sampleRate;
 }
 
 static float osc_step(struct Osc *osc, OscFunc func)
@@ -160,9 +162,9 @@ static float env_step(struct Env *env)
 	return env->gain;
 }
 
-static void lp2_recalc(struct LP2 *lp)
+static void lp2_recalc(struct LP2 *lp, float sampleRate)
 {
-	float alpha = tanf(2 * M_PI * lp->cutoff / HM_SAMPLE_RATE);
+	float alpha = tanf(2 * M_PI * lp->cutoff / sampleRate);
 	float alphaSq = alpha * alpha;
 	float c = 1 / (1 + 2 * M_SQRT1_2 * alpha + alphaSq);
 
@@ -186,7 +188,7 @@ static void lp2_init(struct LP2 *lp)
 	lp->out[1] = 0;
 	lp->out[2] = 0;
 
-	lp2_recalc(lp);
+	lp2_recalc(lp, 1);
 }
 
 static float lp2_step(struct LP2 *lp, float input)
@@ -209,6 +211,15 @@ static float lp2_step(struct LP2 *lp, float input)
 static float mix(float a, float b, float factor)
 {
 	return (1.0 - factor) * a + factor * b;
+}
+
+static void set_sample_rate(HmSynth *base, int sampleRate)
+{
+	SineSynth *synth = (SineSynth *)base;
+
+	synth->sampleRate = sampleRate;
+
+	lp2_recalc(&synth->filter, sampleRate);
 }
 
 static const char **get_params(HmSynth *base, int *numParams)
@@ -237,11 +248,11 @@ static void start_note(HmSynth *base, int num, float velocity)
 	synth->note = num;
 
 	float freq = midi_to_freq(num);
-	osc_set_freq(&synth->osc, freq);
+	osc_set_freq(&synth->osc, freq, synth->sampleRate);
 	env_start(&synth->env);
 	env_start(&synth->fenv);
 	synth->filter.cutoff = freq * 2;
-	lp2_recalc(&synth->filter);
+	lp2_recalc(&synth->filter, synth->sampleRate);
 }
 
 static void stop_note(HmSynth *base, int num)
@@ -285,6 +296,7 @@ static HmSynth *init(const HmSynthType *type)
 	synth->base = (HmSynth){
 		.type = type,
 		.free = free_synth,
+		.setSampleRate = set_sample_rate,
 		.getParams = get_params,
 		.getParam = get_param,
 		.setControl = set_control,

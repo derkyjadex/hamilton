@@ -74,6 +74,8 @@ struct Voice {
 typedef struct Dx10 {
 	HmSynth base;
 
+	float sampleRate;
+
 	struct Patch patches[NUM_PATCHES];
 	int currentPatch;
 
@@ -106,10 +108,10 @@ typedef struct Dx10 {
 
 static void update_params(Dx10 *this)
 {
-	const float SAMPLE_TIME = 1.0f / HM_SAMPLE_RATE;
+	float sampleTime = 1.0f / this->sampleRate;
 	float *params = this->patches[this->currentPatch].params;
 
-	this->tune = MIDI_TO_FREQ_1 * SAMPLE_TIME * powf(2.0f, floorf(params[11] * 6.9f) - 2.0f);
+	this->tune = MIDI_TO_FREQ_1 * sampleTime * powf(2.0f, floorf(params[11] * 6.9f) - 2.0f);
 
 	float ratio = floorf(40.1f * params[3] * params[3]);
 
@@ -133,21 +135,29 @@ static void update_params(Dx10 *this)
 	this->velSens = params[9];
 	this->lfo.vibrato = 0.001f * params[10] * params[10];
 
-	this->env.attack = 1.0f - expf(-SAMPLE_TIME * expf(8.0f - 8.0f * params[0]));
+	this->env.attack = 1.0f - expf(-sampleTime * expf(8.0f - 8.0f * params[0]));
 
 	if(params[1] > 0.98f) {
 		this->env.decay = 1.0f;
 	} else {
-		this->env.decay = expf(-SAMPLE_TIME * expf(5.0f - 8.0f * params[1]));
+		this->env.decay = expf(-sampleTime * expf(5.0f - 8.0f * params[1]));
 	}
 
-	this->env.release =        expf(-SAMPLE_TIME * expf(5.0f - 5.0f * params[2]));
-	this->mod.decay =   1.0f - expf(-SAMPLE_TIME * expf(6.0f - 7.0f * params[6]));
-	this->mod.release = 1.0f - expf(-SAMPLE_TIME * expf(5.0f - 8.0f * params[8]));
+	this->env.release =        expf(-sampleTime * expf(5.0f - 5.0f * params[2]));
+	this->mod.decay =   1.0f - expf(-sampleTime * expf(6.0f - 7.0f * params[6]));
+	this->mod.release = 1.0f - expf(-sampleTime * expf(5.0f - 8.0f * params[8]));
 
 	this->waveform = 0.50f - 3.0f * params[13] * params[13];
 	this->mod.mix = 0.25f * params[14] * params[14];
-	this->lfo.d = 628.3f * SAMPLE_TIME * 25.0f * params[15] * params[15]; //these params not in original DX10
+	this->lfo.d = 628.3f * sampleTime * 25.0f * params[15] * params[15]; //these params not in original DX10
+}
+
+static void set_sample_rate(HmSynth *base, int sampleRate)
+{
+	Dx10 *this = (Dx10 *)base;
+
+	this->sampleRate = sampleRate;
+	update_params(this);
 }
 
 static struct Voice *find_next_voice(Dx10 *this)
@@ -429,6 +439,7 @@ static HmSynth *init(const HmSynthType *type)
 	this->base = (HmSynth){
 		.type = type,
 		.free = free_synth,
+		.setSampleRate = set_sample_rate,
 		.getNumPatches = get_num_patches,
 		.getPatch = get_patch,
 		.setPatch = set_patch,

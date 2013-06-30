@@ -22,6 +22,8 @@ struct HmSynth {
 	const HmSynthType *type;
 	void (*free)(HmSynth *synth);
 
+	void (*setSampleRate)(HmSynth *synth, int sampleRate);
+
 	int (*getNumPatches)(HmSynth *synth);
 	int (*getPatch)(HmSynth *synth);
 	void (*setPatch)(HmSynth *synth, int patch);

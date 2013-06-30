@@ -15,7 +15,6 @@
 #include "hamilton/lib.h"
 #include "hamilton/seq.h"
 
-static const int HM_SAMPLE_RATE = 48000;
 static const int NUM_CHANNELS = 4;
 
 typedef struct HmBand HmBand;

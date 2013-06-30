@@ -121,6 +121,12 @@ void hm_band_free(HmBand *band)
 void hm_band_set_sample_rate(HmBand *band, int sampleRate)
 {
 	band->sampleRate = sampleRate;
+
+	for (int i = 0; i < NUM_CHANNELS; i++) {
+		if (band->synths[i]) {
+			band->synths[i]->setSampleRate(band->synths[i], sampleRate);
+		}
+	}
 }
 
 HmLib *hm_band_get_lib(HmBand *band)
@@ -158,6 +164,8 @@ AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *
 	*synth = type->init(type);
 	if (!*synth)
 		THROW(AL_ERROR_GENERIC);
+
+	(*synth)->setSampleRate(*synth, band->sampleRate);
 
 	PASS()
 }
