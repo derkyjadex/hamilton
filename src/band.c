@@ -10,8 +10,8 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
-#define SEQ_TO_SAMPLES(t) (t) * (band->sampleRate / 10000.0)
-#define SAMPLES_TO_SEQ(n) (n) * (10000.0 / band->sampleRate)
+#define TICKS_TO_SAMPLES(t) (t) * (band->sampleRate / HM_SEQ_TICKS_PER_SEC)
+#define SAMPLES_TO_TICKS(n) (n) * (HM_SEQ_TICKS_PER_SEC / band->sampleRate)
 
 typedef struct {
 	enum {
@@ -205,7 +205,7 @@ static void process_messages(HmBand *band)
 				break;
 
 			case SEEK:
-				band->time = SEQ_TO_SAMPLES(message.data.position);
+				band->time = TICKS_TO_SAMPLES(message.data.position);
 				break;
 
 			case SET_LOOPING:
@@ -220,8 +220,8 @@ static void process_messages(HmBand *band)
 				break;
 
 			case SET_LOOP:
-				band->loopStart = SEQ_TO_SAMPLES(message.data.loop.start);
-				band->loopEnd = SEQ_TO_SAMPLES(message.data.loop.end);
+				band->loopStart = TICKS_TO_SAMPLES(message.data.loop.start);
+				band->loopEnd = TICKS_TO_SAMPLES(message.data.loop.end);
 				outMessage = (FromAudioMessage){
 					.type = LOOP_SET,
 					.data = {
@@ -272,8 +272,8 @@ static void process_event(HmBand *band, HmEvent *event)
 
 static void run(HmBand *band, float *buffer, uint64_t numSamples)
 {
-	uint32_t start = SAMPLES_TO_SEQ(band->time);
-	uint32_t end = start + SAMPLES_TO_SEQ(numSamples);
+	uint32_t start = SAMPLES_TO_TICKS(band->time);
+	uint32_t end = start + SAMPLES_TO_TICKS(numSamples);
 	uint32_t time = start;
 
 	HmEvent events[128];
@@ -296,7 +296,7 @@ static void run(HmBand *band, float *buffer, uint64_t numSamples)
 
 		uint64_t intervalSamples;
 		if (eventUpcoming) {
-			intervalSamples = SEQ_TO_SAMPLES(events[event].time - time);
+			intervalSamples = TICKS_TO_SAMPLES(events[event].time - time);
 		}
 
 		if (!eventUpcoming || intervalSamples > numSamples) {
@@ -354,7 +354,7 @@ void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples)
 	FromAudioMessage message = {
 		.type = POSITION,
 		.data = {
-			.position = SAMPLES_TO_SEQ(band->time)
+			.position = SAMPLES_TO_TICKS(band->time)
 		}
 	};
 	mq_push(band->fromAudio, &message);

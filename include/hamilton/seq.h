@@ -12,6 +12,8 @@
 
 #include "albase/common.h"
 
+static const float HM_SEQ_TICKS_PER_SEC = 10000.0f;
+
 typedef struct HmSeq HmSeq;
 
 typedef enum {
