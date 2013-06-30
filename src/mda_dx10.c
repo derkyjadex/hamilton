@@ -220,12 +220,40 @@ static void stop_note(HmSynth *base, int note)
 
 static void set_pitch(HmSynth *base, float pitch)
 {
+	Dx10 *this = (Dx10 *)base;
 
+	this->pitchBend = 1.0f + pitch * (pitch < 0.0f) ? 0.877521408f : 0.109087738f;
 }
 
 static void set_control(HmSynth *base, int control, float value)
 {
+	Dx10 *this = (Dx10 *)base;
 
+	switch (control) {
+		case 1:
+			this->modWheel = 0.00080645f * value * value;
+			break;
+
+		case 7:
+			this->volume = 0.00564515f * value * value;
+
+		case 64:
+			this->sustain = value >= 0.5f;
+			if (!this->sustain) {
+				stop_note(base, SUSTAIN_NOTE);
+			}
+			break;
+
+		case 123:
+		case 124:
+		case 125:
+		case 126:
+		case 127:
+			for (int i = 0; i < NUM_VOICES; i++) {
+				this->voices[i].env.decay = 0.99f;
+			}
+			break;
+	}
 }
 
 static const char **get_params(HmSynth *base, int *numParams)
