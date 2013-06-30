@@ -250,17 +250,11 @@ static void process_event(HmBand *band, HmEvent *event)
 	}
 }
 
-void hm_band_run(HmBand *band, float *buffer, int length)
+static void run(HmBand *band, float *buffer, uint64_t numSamples)
 {
-	for (int i = 0; i < length; i++) {
-		buffer[i] = 0;
-	}
-
-	process_messages(band);
-
-	uint32_t time = SAMPLES_TO_SEQ(band->time);
-	uint32_t start = time;
-	uint32_t end = start + SAMPLES_TO_SEQ(length);
+	uint32_t start = SAMPLES_TO_SEQ(band->time);
+	uint32_t end = start + SAMPLES_TO_SEQ(numSamples);
+	uint32_t time = start;
 
 	HmEvent events[128];
 	int numEvents;
@@ -280,19 +274,19 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 			eventUpcoming = event < numEvents;
 		}
 
-		int samples;
+		uint64_t intervalSamples;
 		if (eventUpcoming) {
-			samples = SEQ_TO_SAMPLES(events[event].time - time);
+			intervalSamples = SEQ_TO_SAMPLES(events[event].time - time);
 		}
 
-		if (!eventUpcoming || samples > length) {
-			samples = length;
+		if (!eventUpcoming || intervalSamples > numSamples) {
+			intervalSamples = numSamples;
 		}
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
 			HmSynth *synth = band->synths[i];
 			if (synth) {
-				synth->generate(synth, buffer, samples);
+				synth->generate(synth, buffer, (int)intervalSamples);
 			}
 		}
 
@@ -301,17 +295,46 @@ void hm_band_run(HmBand *band, float *buffer, int length)
 		}
 
 		if (band->playing) {
-			band->time += samples;
+			band->time += intervalSamples;
 		}
-		buffer += samples;
-		length -= samples;
+		buffer += intervalSamples;
+		numSamples -= intervalSamples;
 
-	} while (length);
+	} while (numSamples);
+}
+
+void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples)
+{
+	for (int i = 0; i < numSamples; i++) {
+		buffer[i] = 0;
+	}
+
+	process_messages(band);
+
+	while (true) {
+		if (band->playing &&
+			band->looping &&
+			band->time <= band->loopEnd &&
+			band->time + numSamples > band->loopEnd) {
+
+			uint64_t intervalSamples = band->loopEnd - band->time;
+
+			run(band, buffer, intervalSamples);
+
+			band->time = band->loopStart;
+			buffer += intervalSamples;
+			numSamples -= intervalSamples;
+
+		} else {
+			run(band, buffer, numSamples);
+			break;
+		}
+	}
 
 	FromAudioMessage message = {
 		.type = POSITION,
 		.data = {
-			.position = time
+			.position = SAMPLES_TO_SEQ(band->time)
 		}
 	};
 	mq_push(band->fromAudio, &message);

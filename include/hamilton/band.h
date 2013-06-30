@@ -39,7 +39,7 @@ AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *
 
 const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls);
 float hm_band_get_channel_control(HmBand *band, int channel, int control);
-void hm_band_run(HmBand *band, float *buffer, int length);
+void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples);
 
 AlError hm_band_play(HmBand *band);
 AlError hm_band_pause(HmBand *band);
