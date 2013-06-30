@@ -238,6 +238,7 @@ static void process_event(HmBand *band, HmEvent *event)
 			break;
 
 		case HM_EV_PITCH:
+			synth->setPitch(synth, event->data.pitch);
 			break;
 
 		case HM_EV_CONTROL:

@@ -33,6 +33,7 @@ struct HmSynth {
 	void (*startNote)(HmSynth *synth, int note, float velocity);
 	void (*stopNote)(HmSynth *synth, int note);
 
+	void (*setPitch)(HmSynth *synth, float pitch);
 	void (*setControl)(HmSynth *synth, int control, float value);
 
 	void (*generate)(HmSynth *synth, float *buffer, int length);

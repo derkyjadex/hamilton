@@ -218,6 +218,11 @@ static void stop_note(HmSynth *base, int note)
 	}
 }
 
+static void set_pitch(HmSynth *base, float pitch)
+{
+
+}
+
 static void set_control(HmSynth *base, int control, float value)
 {
 
@@ -404,6 +409,7 @@ static HmSynth *init(const HmSynthType *type)
 		.setParam = set_param,
 		.startNote = start_note,
 		.stopNote = stop_note,
+		.setPitch = set_pitch,
 		.setControl = set_control,
 		.generate = generate
 	};
