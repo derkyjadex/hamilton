@@ -155,16 +155,16 @@ AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *
 	PASS()
 }
 
-const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls)
+const char **hm_band_get_channel_params(HmBand *band, int channel, int *numParams)
 {
 	HmSynth *synth = band->synths[channel];
-	return synth->getControls(synth, numControls);
+	return synth->getParams(synth, numParams);
 }
 
-float hm_band_get_channel_control(HmBand *band, int channel, int control)
+float hm_band_get_channel_param(HmBand *band, int channel, int param)
 {
 	HmSynth *synth = band->synths[channel];
-	return synth->getControl(synth, control);
+	return synth->getParam(synth, param);
 }
 
 static void process_messages(HmBand *band)

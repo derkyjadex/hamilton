@@ -22,16 +22,18 @@ struct HmSynth {
 	const HmSynthType *type;
 	void (*free)(HmSynth *synth);
 
-	const char **(*getControls)(HmSynth *synth, int *numControls);
-	float (*getControl)(HmSynth *synth, int control);
-	void (*setControl)(HmSynth *synth, int control, float value);
-
 	int (*getNumPatches)(HmSynth *synth);
-	void (*setPatch)(HmSynth *synth, int patch);
 	int (*getPatch)(HmSynth *synth);
+	void (*setPatch)(HmSynth *synth, int patch);
+
+	const char **(*getParams)(HmSynth *synth, int *numParams);
+	float (*getParam)(HmSynth *synthm, int param);
+	void (*setParam)(HmSynth *synthm, int param, float value);
 
 	void (*startNote)(HmSynth *synth, int note, float velocity);
 	void (*stopNote)(HmSynth *synth, int note);
+
+	void (*setControl)(HmSynth *synth, int control, float value);
 
 	void (*generate)(HmSynth *synth, float *buffer, int length);
 };

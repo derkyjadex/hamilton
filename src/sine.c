@@ -13,7 +13,7 @@
 #include "hamilton/core_synths.h"
 
 static const char *name = "Sine Wave";
-static const char *controls[] = { };
+static const char *params[] = { };
 
 enum EnvState {
 	OFF, ATTACK, DECAY, SUSTAIN, RELEASE
@@ -211,13 +211,13 @@ static float mix(float a, float b, float factor)
 	return (1.0 - factor) * a + factor * b;
 }
 
-static const char **get_controls(HmSynth *base, int *numControls)
+static const char **get_params(HmSynth *base, int *numParams)
 {
-	*numControls = 0;
-	return controls;
+	*numParams = 0;
+	return params;
 }
 
-static float get_control(HmSynth *base, int control)
+static float get_param(HmSynth *base, int param)
 {
 	return 0;
 }
@@ -285,8 +285,8 @@ static HmSynth *init(const HmSynthType *type)
 	synth->base = (HmSynth){
 		.type = type,
 		.free = free_synth,
-		.getControls = get_controls,
-		.getControl = get_control,
+		.getParams = get_params,
+		.getParam = get_param,
 		.setControl = set_control,
 		.startNote = start_note,
 		.stopNote = stop_note,

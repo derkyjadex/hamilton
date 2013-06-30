@@ -37,8 +37,9 @@ HmSeq *hm_band_get_seq(HmBand *band);
 void hm_band_get_channel_synths(HmBand *band, const HmSynthType *types[NUM_CHANNELS]);
 AlError hm_band_set_channel_synth(HmBand *band, int channel, const HmSynthType *type);
 
-const char **hm_band_get_channel_controls(HmBand *band, int channel, int *numControls);
-float hm_band_get_channel_control(HmBand *band, int channel, int control);
+const char **hm_band_get_channel_params(HmBand *band, int channel, int *numParams);
+float hm_band_get_channel_param(HmBand *band, int channel, int param);
+
 void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples);
 
 AlError hm_band_play(HmBand *band);
