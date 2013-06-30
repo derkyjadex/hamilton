@@ -222,7 +222,7 @@ static void set_pitch(HmSynth *base, float pitch)
 {
 	Dx10 *this = (Dx10 *)base;
 
-	this->pitchBend = 1.0f + pitch * (pitch < 0.0f) ? 0.877521408f : 0.109087738f;
+	this->pitchBend = 1.0f + pitch * (pitch < 0.0f) ? 0.122478592f : 0.109087738f;
 }
 
 static void set_control(HmSynth *base, int control, float value)
