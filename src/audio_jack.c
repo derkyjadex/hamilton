@@ -84,6 +84,9 @@ AlError hm_audio_init(HmBand *band)
 	if (!midiPort)
 		THROW(AL_ERROR_GENERIC)
 
+	jack_nframes_t sampleRate = jack_get_sample_rate(client);
+	hm_band_set_sample_rate(band, sampleRate);
+
 	if (jack_activate(client) != 0)
 		THROW(AL_ERROR_GENERIC)
 

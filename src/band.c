@@ -10,8 +10,8 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
-#define SEQ_TO_SAMPLES(t) (t) * ((double)HM_SAMPLE_RATE / 10000.0)
-#define SAMPLES_TO_SEQ(n) (n) * (10000.0 / (double)HM_SAMPLE_RATE)
+#define SEQ_TO_SAMPLES(t) (t) * (band->sampleRate / 10000.0)
+#define SAMPLES_TO_SEQ(n) (n) * (10000.0 / band->sampleRate)
 
 typedef struct {
 	enum {
@@ -49,6 +49,7 @@ typedef struct {
 
 struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
+	double sampleRate;
 	uint64_t time;
 	bool playing;
 	bool looping;
@@ -75,6 +76,7 @@ AlError hm_band_init(HmBand **result)
 	}
 
 	band->time = 0;
+	band->sampleRate = 48000;
 	band->playing = false;
 	band->looping = false;
 	band->loopStart = 0;
@@ -114,6 +116,11 @@ void hm_band_free(HmBand *band)
 		mq_free(band->fromAudio);
 		free(band);
 	}
+}
+
+void hm_band_set_sample_rate(HmBand *band, int sampleRate)
+{
+	band->sampleRate = sampleRate;
 }
 
 HmLib *hm_band_get_lib(HmBand *band)

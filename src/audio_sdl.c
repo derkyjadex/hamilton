@@ -12,6 +12,7 @@
 #include "hamilton/audio.h"
 #include "hamilton/band.h"
 
+static const int SAMPLE_RATE = 48000;
 static const int BUFFER_SIZE = 256;
 
 static bool waitingForStart;
@@ -52,7 +53,7 @@ AlError hm_audio_init(HmBand *band)
 		THROW(AL_ERROR_GENERIC);
 
 	SDL_AudioSpec desired = {
-		.freq = HM_SAMPLE_RATE,
+		.freq = SAMPLE_RATE,
 		.format = AUDIO_S16SYS,
 		.channels = 1,
 		.samples = BUFFER_SIZE,

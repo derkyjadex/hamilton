@@ -31,6 +31,8 @@ typedef struct {
 AlError hm_band_init(HmBand **band);
 void hm_band_free(HmBand *band);
 
+void hm_band_set_sample_rate(HmBand *band, int sampleRate);
+
 HmLib *hm_band_get_lib(HmBand *band);
 HmSeq *hm_band_get_seq(HmBand *band);
 
