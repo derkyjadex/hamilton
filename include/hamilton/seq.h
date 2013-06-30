@@ -19,6 +19,7 @@ typedef enum {
 	HM_EV_NOTE_OFF,
 	HM_EV_PITCH,
 	HM_EV_CONTROL,
+	HM_EV_PARAM,
 	HM_EV_PATCH
 } HmEventType;
 
@@ -33,9 +34,9 @@ typedef struct {
 		} note;
 		float pitch;
 		struct {
-			int control;
+			int num;
 			float value;
-		} control;
+		} control, param;
 		int patch;
 	} data;
 } HmEvent;
@@ -58,6 +59,8 @@ typedef struct {
 		HM_SEQ_PITCH_CLEARED,
 		HM_SEQ_CONTROL_SET,
 		HM_SEQ_CONTROL_CLEARED,
+		HM_SEQ_PARAM_SET,
+		HM_SEQ_PARAM_CLEARED,
 		HM_SEQ_PATCH_SET,
 		HM_SEQ_PATCH_CLEARED
 	} type;
@@ -70,9 +73,9 @@ typedef struct {
 		} note;
 		float pitch;
 		struct {
-			int control;
+			int num;
 			float value;
-		} control;
+		} control, param;
 		int patch;
 	} data;
 } HmSeqMessage;
@@ -93,6 +96,9 @@ AlError hm_seq_clear_pitch(HmSeq *seq, int channel, uint32_t time);
 
 AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, float value);
 AlError hm_seq_clear_control(HmSeq *seq, int channel, uint32_t time, int control);
+
+AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int control, float value);
+AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int control);
 
 AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch);
 AlError hm_seq_clear_patch(HmSeq *seq, int channel, uint32_t time);

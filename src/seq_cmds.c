@@ -193,6 +193,12 @@ static void push_type(lua_State *L, HmSeqMessage *message)
 		case HM_SEQ_CONTROL_CLEARED:
 			lua_pushliteral(L, "control_cleared");
 			break;
+		case HM_SEQ_PARAM_SET:
+			lua_pushliteral(L, "param_set");
+			break;
+		case HM_SEQ_PARAM_CLEARED:
+			lua_pushliteral(L, "param_cleared");
+			break;
 		case HM_SEQ_PATCH_SET:
 			lua_pushliteral(L, "patch_set");
 			break;
@@ -257,11 +263,22 @@ int cmd_get_seq_messages(lua_State *L)
 			case HM_SEQ_CONTROL_SET:
 			case HM_SEQ_CONTROL_CLEARED:
 				lua_pushliteral(L, "control");
-				lua_pushinteger(L, message.data.control.control);
+				lua_pushinteger(L, message.data.control.num);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "value");
 				lua_pushnumber(L, message.data.control.value);
+				lua_settable(L, -3);
+				break;
+
+			case HM_SEQ_PARAM_SET:
+			case HM_SEQ_PARAM_CLEARED:
+				lua_pushliteral(L, "param");
+				lua_pushinteger(L, message.data.param.num);
+				lua_settable(L, -3);
+
+				lua_pushliteral(L, "value");
+				lua_pushnumber(L, message.data.param.value);
 				lua_settable(L, -3);
 				break;
 

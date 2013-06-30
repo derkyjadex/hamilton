@@ -31,6 +31,8 @@ typedef struct {
 		CLEAR_PITCH,
 		SET_CONTROL,
 		CLEAR_CONTROL,
+		SET_PARAM,
+		CLEAR_PARAM,
 		SET_PATCH,
 		CLEAR_PATCH
 	} type;
@@ -42,7 +44,7 @@ typedef struct {
 			HmNoteData data;
 		} updateNote;
 
-		EventNode *setPitch, *setControl, *setPatch;
+		EventNode *setPitch, *setControl, *setParam, *setPatch;
 
 		struct {
 			int channel;
@@ -52,8 +54,8 @@ typedef struct {
 		struct {
 			int channel;
 			uint32_t time;
-			int control;
-		} clearControl;
+			int num;
+		} clearControl, clearParam;
 
 	} data;
 } ToAudioMessage;
@@ -197,7 +199,18 @@ static EventNode *find_control_event(EventNode *start, uint32_t time, int channe
 {
 	EventNode *event;
 	while ((event = find_event(start, time, channel, HM_EV_CONTROL))) {
-		if (event->event.data.control.control == control)
+		if (event->event.data.control.num == control)
+			return event;
+	}
+
+	return NULL;
+}
+
+static EventNode *find_param_event(EventNode *start, uint32_t time, int channel, int param)
+{
+	EventNode *event;
+	while ((event = find_event(start, time, channel, HM_EV_PARAM))) {
+		if (event->event.data.param.num == param)
 			return event;
 	}
 
@@ -352,7 +365,7 @@ static void clear_pitch(HmSeq *seq, int channel, uint32_t time)
 
 static void set_control(HmSeq *seq, EventNode *event)
 {
-	EventNode *foundEvent = find_control_event(foundEvent, event->event.time, event->event.channel, event->event.data.control.control);
+	EventNode *foundEvent = find_control_event(foundEvent, event->event.time, event->event.channel, event->event.data.control.num);
 
 	FromAudioMessage message = {
 		.type = SEQ_MESSAGE,
@@ -363,7 +376,7 @@ static void set_control(HmSeq *seq, EventNode *event)
 				.channel = event->event.channel,
 				.data = {
 					.control = {
-						.control = event->event.data.control.control,
+						.num = event->event.data.control.num,
 						.value = event->event.data.control.value
 					}
 				}
@@ -395,8 +408,67 @@ static void clear_control(HmSeq *seq, int channel, uint32_t time, int control)
 					.channel = event->event.channel,
 					.data = {
 						.control = {
-							.control = event->event.data.control.control,
+							.num = event->event.data.control.num,
 							.value = event->event.data.control.value
+						}
+					}
+				}
+			}
+		};
+		mq_push(seq->fromAudio, &message);
+
+		remove_event(seq, event);
+		free_from_audio(seq, event);
+	}
+}
+
+static void set_param(HmSeq *seq, EventNode *event)
+{
+	EventNode *foundEvent = find_param_event(foundEvent, event->event.time, event->event.channel, event->event.data.param.num);
+
+	FromAudioMessage message = {
+		.type = SEQ_MESSAGE,
+		.data = {
+			.message = {
+				.type = HM_SEQ_PARAM_SET,
+				.time = event->event.time,
+				.channel = event->event.channel,
+				.data = {
+					.param = {
+						.num = event->event.data.param.num,
+						.value = event->event.data.param.value
+					}
+				}
+			}
+		}
+	};
+	mq_push(seq->fromAudio, &message);
+
+	if (!foundEvent) {
+		insert_event(seq, event);
+
+	} else {
+		foundEvent->event.data.param.value = event->event.data.param.value;
+		free_from_audio(seq, event);
+	}
+}
+
+static void clear_param(HmSeq *seq, int channel, uint32_t time, int param)
+{
+	EventNode *event = find_param_event(seq->head, time, channel, param);
+
+	if (event) {
+		FromAudioMessage message = {
+			.type = SEQ_MESSAGE,
+			.data = {
+				.message = {
+					.type = HM_SEQ_PARAM_CLEARED,
+					.time = event->event.time,
+					.channel = event->event.channel,
+					.data = {
+						.param = {
+							.num = event->event.data.param.num,
+							.value = event->event.data.param.value
 						}
 					}
 				}
@@ -492,7 +564,15 @@ static void update_sequence(HmSeq *seq)
 				break;
 
 			case CLEAR_CONTROL:
-				clear_control(seq, message.data.clearControl.channel, message.data.clearControl.time, message.data.clearControl.control);
+				clear_control(seq, message.data.clearControl.channel, message.data.clearControl.time, message.data.clearControl.num);
+				break;
+
+			case SET_PARAM:
+				set_param(seq, message.data.setParam);
+				break;
+
+			case CLEAR_PARAM:
+				clear_param(seq, message.data.clearParam.channel, message.data.clearParam.time, message.data.clearParam.num);
 				break;
 
 			case SET_PATCH:
@@ -702,7 +782,7 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 		.type = HM_EV_CONTROL,
 		.data = {
 			.control = {
-				.control = control,
+				.num = control,
 				.value = value
 			}
 		}
@@ -711,7 +791,7 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 	ToAudioMessage message = {
 		.type = SET_CONTROL,
 		.data = {
-			.setPitch = event
+			.setControl = event
 		}
 	};
 
@@ -731,7 +811,62 @@ AlError hm_seq_clear_control(HmSeq *seq, int channel, uint32_t time, int control
 			.clearControl = {
 				.channel = channel,
 				.time = time,
-				.control = control
+				.num = control
+			}
+		}
+	};
+
+	if (!mq_push(seq->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
+AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, float value)
+{
+	BEGIN()
+
+	EventNode *event = NULL;
+	TRY(al_malloc(&event, sizeof(EventNode), 1));
+
+	event->prev = NULL;
+	event->next = NULL;
+	event->event = (HmEvent){
+		.time = time,
+		.channel = channel,
+		.type = HM_EV_PARAM,
+		.data = {
+			.param = {
+				.num = param,
+				.value = value
+			}
+		}
+	};
+
+	ToAudioMessage message = {
+		.type = SET_PARAM,
+		.data = {
+			.setParam = event
+		}
+	};
+
+	if (!mq_push(seq->toAudio, &message))
+		THROW(AL_ERROR_MEMORY);
+
+	PASS()
+}
+
+AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int param)
+{
+	BEGIN()
+
+	ToAudioMessage message = {
+		.type = CLEAR_PARAM,
+		.data = {
+			.clearParam = {
+				.channel = channel,
+				.time = time,
+				.num = param
 			}
 		}
 	};

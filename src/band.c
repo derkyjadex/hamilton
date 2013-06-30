@@ -241,7 +241,11 @@ static void process_event(HmBand *band, HmEvent *event)
 			break;
 
 		case HM_EV_CONTROL:
-			synth->setControl(synth, event->data.control.control, event->data.control.value);
+			synth->setControl(synth, event->data.control.num, event->data.control.value);
+			break;
+
+		case HM_EV_PARAM:
+			synth->setParam(synth, event->data.param.num, event->data.param.value);
 			break;
 
 		case HM_EV_PATCH:
