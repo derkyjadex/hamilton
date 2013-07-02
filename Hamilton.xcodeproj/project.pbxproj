@@ -68,6 +68,7 @@
 		1A0F50EF176DD67D00D24C94 /* audio_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio_jack.c; sourceTree = "<group>"; };
 		1A0F50F7176DDFDD00D24C94 /* midi_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_jack.c; sourceTree = "<group>"; };
 		1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
+		1A46BF6B178376E300D395C4 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A554C6D16FD0230007ACD72 /* Global.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Global.xcconfig; sourceTree = "<group>"; };
 		1A554C7416FD0F4F007ACD72 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -192,6 +193,7 @@
 				1AC0D795177716E900290C88 /* seq_cmds.c */,
 				1AC0D794177716DD00290C88 /* seq_cmds.h */,
 				1A65C5EB16ED2F1900C40716 /* sine.c */,
+				1A46BF6B178376E300D395C4 /* test.lua */,
 			);
 			name = Source;
 			path = src;
