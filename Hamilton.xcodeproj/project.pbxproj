@@ -28,6 +28,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1A46BF671783729E00D395C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AFBAD0E14DD4D1300E28C0A;
+			remoteInfo = albase;
+		};
 		1AC0D7791776227A00290C88 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
@@ -312,6 +319,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				1A46BF681783729E00D395C4 /* PBXTargetDependency */,
 			);
 			name = hamiltoncli;
 			productName = hamiltoncli;
@@ -395,6 +403,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1A46BF681783729E00D395C4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = albase;
+			targetProxy = 1A46BF671783729E00D395C4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1A554C6A16FD014E007ACD72 /* Debug */ = {
