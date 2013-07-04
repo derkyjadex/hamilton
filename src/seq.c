@@ -41,6 +41,7 @@ typedef struct {
 		HmNote *addNote, *removeNote;
 		struct {
 			HmNote *note;
+			uint32_t time;
 			HmNoteData data;
 		} updateNote;
 
@@ -239,7 +240,7 @@ static void add_note(HmSeq *seq, HmNote *note)
 		.data = {
 			.message = {
 				.type = HM_SEQ_NOTE_ADDED,
-				.time = note->data.time,
+				.time = note->on.event.time,
 				.channel = note->on.event.channel,
 				.data = {
 					.note = {
@@ -263,7 +264,7 @@ static void remove_note(HmSeq *seq, HmNote *note)
 		.data = {
 			.message = {
 				.type = HM_SEQ_NOTE_REMOVED,
-				.time = note->data.time,
+				.time = note->on.event.time,
 				.channel = note->on.event.channel,
 				.data = {
 					.note = {
@@ -277,11 +278,15 @@ static void remove_note(HmSeq *seq, HmNote *note)
 	mq_push(seq->fromAudio, &message);
 }
 
-static void update_note(HmSeq *seq, HmNote *note, HmNoteData *noteData)
+static void update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *noteData)
 {
-	if (note->data.time != noteData->time || note->data.length != noteData->length) {
+	if (note->on.event.time != time || note->data.length != noteData->length) {
 		remove_event(seq, &note->on);
 		remove_event(seq, &note->off);
+
+		note->on.event.time = time;
+		note->off.event.time = time + noteData->length;
+
 		insert_event(seq, &note->on);
 		insert_event(seq, &note->off);
 	}
@@ -296,7 +301,7 @@ static void update_note(HmSeq *seq, HmNote *note, HmNoteData *noteData)
 		.data = {
 			.message = {
 				.type = HM_SEQ_NOTE_UPDATED,
-				.time = note->data.time,
+				.time = note->on.event.time,
 				.channel = note->on.event.channel,
 				.data = {
 					.note = {
@@ -548,7 +553,7 @@ static void update_sequence(HmSeq *seq)
 				break;
 
 			case UPDATE_NOTE:
-				update_note(seq, message.data.updateNote.note, &message.data.updateNote.data);
+				update_note(seq, message.data.updateNote.note, &message.data.updateNote.time, &message.data.updateNote.data);
 				break;
 
 			case SET_PITCH:
@@ -624,7 +629,7 @@ bool hm_seq_pop_message(HmSeq *seq, HmSeqMessage *message)
 	return false;
 }
 
-AlError hm_seq_add_note(HmSeq *seq, int channel, HmNoteData *data)
+AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data)
 {
 	BEGIN()
 
@@ -636,7 +641,7 @@ AlError hm_seq_add_note(HmSeq *seq, int channel, HmNoteData *data)
 		.prev = NULL,
 		.next = NULL,
 		.event = (HmEvent){
-			.time = data->time,
+			.time = time,
 			.channel = channel,
 			.type = HM_EV_NOTE_ON,
 			.data = {
@@ -651,7 +656,7 @@ AlError hm_seq_add_note(HmSeq *seq, int channel, HmNoteData *data)
 		.prev = NULL,
 		.next = NULL,
 		.event = (HmEvent){
-			.time = data->time + data->length,
+			.time = data + data->length,
 			.channel = channel,
 			.type = HM_EV_NOTE_OFF,
 			.data = {
@@ -696,7 +701,7 @@ AlError hm_seq_remove_note(HmSeq *seq, HmNote *note)
 	PASS()
 }
 
-AlError hm_seq_update_note(HmSeq *seq, HmNote *note, HmNoteData *data)
+AlError hm_seq_update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *data)
 {
 	BEGIN()
 
@@ -705,6 +710,7 @@ AlError hm_seq_update_note(HmSeq *seq, HmNote *note, HmNoteData *data)
 		.data = {
 			.updateNote = {
 				.note = note,
+				.time = time,
 				.data = *data
 			}
 		}

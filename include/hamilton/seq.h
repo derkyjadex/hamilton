@@ -46,7 +46,6 @@ typedef struct {
 typedef struct HmNote HmNote;
 
 typedef struct {
-	uint32_t time;
 	uint32_t length;
 	uint32_t num;
 	float velocity;
@@ -89,9 +88,9 @@ int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint32_t start
 
 bool hm_seq_pop_message(HmSeq *seq, HmSeqMessage *message);
 
-AlError hm_seq_add_note(HmSeq *seq, int channel, HmNoteData *data);
+AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data);
 AlError hm_seq_remove_note(HmSeq *seq, HmNote *note);
-AlError hm_seq_update_note(HmSeq *seq, HmNote *note, HmNoteData *data);
+AlError hm_seq_update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *data);
 
 AlError hm_seq_set_pitch(HmSeq *seq, int channel, uint32_t time, float pitch);
 AlError hm_seq_clear_pitch(HmSeq *seq, int channel, uint32_t time);

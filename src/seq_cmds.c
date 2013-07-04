@@ -16,14 +16,15 @@ int cmd_add_note(lua_State *L)
 
 	int channel = (int)luaL_checkinteger(L, 1);
 
+	uint32_t time = (int)luaL_checkinteger(L, 2);
+
 	HmNoteData note = {
-		.time = (int)luaL_checkinteger(L, 2),
 		.length = (int)luaL_checkinteger(L, 3),
 		.num = (int)luaL_checkinteger(L, 4),
 		.velocity = luaL_checknumber(L, 5)
 	};
 
-	TRY(hm_seq_add_note(seq, channel, &note));
+	TRY(hm_seq_add_note(seq, channel, time, &note));
 
 	CATCH_LUA(, "error adding note")
 	FINALLY_LUA(, 0)
@@ -55,14 +56,14 @@ int cmd_update_note(lua_State *L)
 	luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
 	HmNote *note = lua_touserdata(L, 1);
 
+	uint32_t time = (int)luaL_checkinteger(L, 2);
 	HmNoteData data = {
-		.time = (int)luaL_checkinteger(L, 2),
 		.length = (int)luaL_checkinteger(L, 3),
 		.num = (int)luaL_checkinteger(L, 4),
 		.velocity = luaL_checknumber(L, 5)
 	};
 
-	TRY(hm_seq_update_note(seq, note, &data));
+	TRY(hm_seq_update_note(seq, note, time, &data));
 
 	CATCH_LUA(, "error updating note")
 	FINALLY_LUA(, 0)
