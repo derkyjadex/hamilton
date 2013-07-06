@@ -25,16 +25,11 @@
 		1AC0D78D177710EC00290C88 /* cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78C177710EC00290C88 /* cmds.c */; };
 		1AC0D78F1777110800290C88 /* band_cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D78E1777110800290C88 /* band_cmds.c */; };
 		1AC0D796177716E900290C88 /* seq_cmds.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0D795177716E900290C88 /* seq_cmds.c */; };
+		1AD99C061788DB0500D3E5DA /* libalbase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AC0D77A1776227A00290C88 /* libalbase.a */; };
+		1AD99C081788DB2600D3E5DA /* Lua.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD99C071788DB2600D3E5DA /* Lua.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1A46BF671783729E00D395C4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 1AFBAD0E14DD4D1300E28C0A;
-			remoteInfo = albase;
-		};
 		1AC0D7791776227A00290C88 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
@@ -118,6 +113,7 @@
 		1AC0D7931777133900290C88 /* band_cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band_cmds.h; sourceTree = "<group>"; };
 		1AC0D794177716DD00290C88 /* seq_cmds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seq_cmds.h; sourceTree = "<group>"; };
 		1AC0D795177716E900290C88 /* seq_cmds.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = seq_cmds.c; sourceTree = "<group>"; };
+		1AD99C071788DB2600D3E5DA /* Lua.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lua.framework; path = /Library/Frameworks/Lua.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +128,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AD99C081788DB2600D3E5DA /* Lua.framework in Frameworks */,
+				1AD99C061788DB0500D3E5DA /* libalbase.a in Frameworks */,
 				1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */,
 				1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */,
 				1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */,
@@ -220,10 +218,11 @@
 		1A65C60016ED2FB000C40716 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1A0F50ED176DD65800D24C94 /* Jackmp.framework */,
 				1A65C60116ED2FB000C40716 /* Cocoa.framework */,
 				1A65C64516F63E3B00C40716 /* CoreAudio.framework */,
 				1A65C64316F63E2E00C40716 /* CoreMIDI.framework */,
+				1A0F50ED176DD65800D24C94 /* Jackmp.framework */,
+				1AD99C071788DB2600D3E5DA /* Lua.framework */,
 				1A65C60316ED2FB000C40716 /* Other Frameworks */,
 				1A65C61C16ED2FE200C40716 /* SDL.framework */,
 			);
@@ -321,7 +320,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				1A46BF681783729E00D395C4 /* PBXTargetDependency */,
 			);
 			name = hamiltoncli;
 			productName = hamiltoncli;
@@ -406,14 +404,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		1A46BF681783729E00D395C4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = albase;
-			targetProxy = 1A46BF671783729E00D395C4 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
 		1A554C6A16FD014E007ACD72 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -446,11 +436,6 @@
 		1A7BEAB216FD1BA8008B3BCB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				OTHER_LDFLAGS = (
-					"-lalbase",
-					"-framework",
-					Lua,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -458,11 +443,6 @@
 		1A7BEAB316FD1BA8008B3BCB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				OTHER_LDFLAGS = (
-					"-lalbase",
-					"-framework",
-					Lua,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
