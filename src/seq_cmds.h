@@ -16,6 +16,8 @@ int cmd_add_set_pitch(lua_State *L);
 int cmd_clear_set_pitch(lua_State *L);
 int cmd_add_set_control(lua_State *L);
 int cmd_clear_set_control(lua_State *L);
+int cmd_add_set_param(lua_State *L);
+int cmd_clear_set_param(lua_State *L);
 int cmd_add_set_patch(lua_State *L);
 int cmd_clear_set_patch(lua_State *L);
 

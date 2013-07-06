@@ -98,8 +98,8 @@ AlError hm_seq_clear_pitch(HmSeq *seq, int channel, uint32_t time);
 AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, float value);
 AlError hm_seq_clear_control(HmSeq *seq, int channel, uint32_t time, int control);
 
-AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int control, float value);
-AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int control);
+AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, float value);
+AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int param);
 
 AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch);
 AlError hm_seq_clear_patch(HmSeq *seq, int channel, uint32_t time);

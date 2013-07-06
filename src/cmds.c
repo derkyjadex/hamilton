@@ -33,6 +33,8 @@ static const luaL_Reg lib[] = {
 	{"clear_set_pitch", cmd_clear_set_pitch},
 	{"add_set_control", cmd_add_set_control},
 	{"clear_set_control", cmd_clear_set_control},
+	{"add_set_param", cmd_add_set_param},
+	{"clear_set_param", cmd_clear_set_param},
 	{"add_set_patch", cmd_add_set_patch},
 	{"clear_set_patch", cmd_clear_set_patch},
 

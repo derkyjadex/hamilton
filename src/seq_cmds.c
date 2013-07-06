@@ -137,6 +137,41 @@ int cmd_clear_set_control(lua_State *L)
 	FINALLY_LUA(, 0)
 }
 
+int cmd_add_set_param(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	HmSeq *seq = hm_band_get_seq(band);
+
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
+	int time = (int)luaL_checkinteger(L, 2);
+	int param = (int)luaL_checkinteger(L, 3) - 1;
+	float value = luaL_checknumber(L, 4);
+
+	TRY(hm_seq_set_param(seq, channel, time, param, value));
+
+	CATCH_LUA(, "error setting param")
+	FINALLY_LUA(, 0)
+}
+
+int cmd_clear_set_param(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	HmSeq *seq = hm_band_get_seq(band);
+
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
+	int time = (int)luaL_checkinteger(L, 2);
+	int param = (int)luaL_checkinteger(L, 3) - 1;
+
+	TRY(hm_seq_clear_param(seq, channel, time, param));
+
+	CATCH_LUA(, "error clearing param")
+	FINALLY_LUA(, 0)
+}
+
 int cmd_add_set_patch(lua_State *L)
 {
 	BEGIN()
