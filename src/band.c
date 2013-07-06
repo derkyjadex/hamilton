@@ -10,8 +10,8 @@
 #include "hamilton/lib.h"
 #include "mq.h"
 
-#define TICKS_TO_SAMPLES(t) (t) * (band->sampleRate / HM_SEQ_TICKS_PER_SEC)
-#define SAMPLES_TO_TICKS(n) (n) * (HM_SEQ_TICKS_PER_SEC / band->sampleRate)
+#define TICKS_TO_SAMPLES(t) (t) * (band->sampleRate / HM_SEQ_TICK_RATE)
+#define SAMPLES_TO_TICKS(n) (n) * (HM_SEQ_TICK_RATE / band->sampleRate)
 
 typedef struct {
 	enum {
