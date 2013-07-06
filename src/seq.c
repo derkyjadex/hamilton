@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <math.h>
 
 #include "hamilton/seq.h"
 #include "mq.h"
@@ -591,18 +592,25 @@ static void update_sequence(HmSeq *seq)
 	}
 }
 
-int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint32_t start, uint32_t end)
+int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint64_t start, uint64_t end, double sampleRate)
 {
 	update_sequence(seq);
 
+	uint32_t startTick = ceil((double)start * HM_SEQ_TICK_RATE / sampleRate);
+	uint32_t endTick = ceil((double)end * HM_SEQ_TICK_RATE / sampleRate) - 1;
+
 	EventNode *event = seq->head;
-	while (event && event->event.time < start) {
+	while (event && event->event.time < startTick) {
 		event = event->next;
 	}
 
+	HmEvent *outEvent = events;
 	int numWritten = 0;
-	while (event && event->event.time <= end && numWritten < numEvents) {
-		*(events++) = event->event;
+	while (event && event->event.time <= endTick && numWritten < numEvents) {
+		*outEvent = event->event;
+		outEvent->time = (outEvent->time - startTick) * sampleRate / HM_SEQ_TICK_RATE;
+
+		outEvent++;
 		numWritten++;
 
 		event = event->next;

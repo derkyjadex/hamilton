@@ -84,7 +84,7 @@ typedef struct {
 AlError hm_seq_init(HmSeq **seq);
 void hm_seq_free(HmSeq *seq);
 
-int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint32_t start, uint32_t end);
+int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint64_t start, uint64_t end, double sampleRate);
 
 bool hm_seq_pop_message(HmSeq *seq, HmSeqMessage *message);
 

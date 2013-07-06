@@ -272,16 +272,15 @@ static void process_event(HmBand *band, HmEvent *event)
 
 static void run(HmBand *band, float *buffer, uint64_t numSamples)
 {
-	uint32_t start = SAMPLES_TO_TICKS(band->time);
-	uint32_t end = start + SAMPLES_TO_TICKS(numSamples);
-	uint32_t time = start;
+	uint64_t time = band->time;
 
 	HmEvent events[128];
 	int numEvents;
-	numEvents = hm_seq_get_events(band->seq, events, sizeof(events), start, end);
 	int event = 0;
 
-	if (!band->playing) {
+	if (band->playing) {
+		numEvents = hm_seq_get_events(band->seq, events, sizeof(events), time, time + numSamples, band->sampleRate);
+	} else {
 		numEvents = 0;
 	}
 
