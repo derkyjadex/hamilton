@@ -14,7 +14,7 @@ int cmd_add_note(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 
 	uint32_t time = (int)luaL_checkinteger(L, 2);
 
@@ -76,7 +76,7 @@ int cmd_add_set_pitch(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
 	float pitch = luaL_checknumber(L, 3);
 
@@ -93,7 +93,7 @@ int cmd_clear_set_pitch(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
 
 	TRY(hm_seq_clear_pitch(seq, channel, time));
@@ -109,9 +109,9 @@ int cmd_add_set_control(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
-	int control = (int)luaL_checkinteger(L, 3);
+	int control = (int)luaL_checkinteger(L, 3) - 1;
 	float value = luaL_checknumber(L, 4);
 
 	TRY(hm_seq_set_control(seq, channel, time, control, value));
@@ -127,9 +127,9 @@ int cmd_clear_set_control(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
-	int control = (int)luaL_checkinteger(L, 3);
+	int control = (int)luaL_checkinteger(L, 3) - 1;
 
 	TRY(hm_seq_clear_control(seq, channel, time, control));
 
@@ -144,9 +144,9 @@ int cmd_add_set_patch(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
-	int patch = (int)luaL_checkinteger(L, 3);
+	int patch = (int)luaL_checkinteger(L, 3) - 1;
 
 	TRY(hm_seq_set_patch(seq, channel, time, patch));
 
@@ -161,7 +161,7 @@ int cmd_clear_set_patch(lua_State *L)
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
-	int channel = (int)luaL_checkinteger(L, 1);
+	int channel = (int)luaL_checkinteger(L, 1) - 1;
 	int time = (int)luaL_checkinteger(L, 2);
 
 	TRY(hm_seq_clear_patch(seq, channel, time));
@@ -231,7 +231,7 @@ int cmd_get_seq_messages(lua_State *L)
 		lua_settable(L, -3);
 
 		lua_pushliteral(L, "channel");
-		lua_pushinteger(L, message.channel);
+		lua_pushinteger(L, message.channel + 1);
 		lua_settable(L, -3);
 
 		switch (message.type) {
@@ -264,7 +264,7 @@ int cmd_get_seq_messages(lua_State *L)
 			case HM_SEQ_CONTROL_SET:
 			case HM_SEQ_CONTROL_CLEARED:
 				lua_pushliteral(L, "control");
-				lua_pushinteger(L, message.data.control.num);
+				lua_pushinteger(L, message.data.control.num + 1);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "value");
@@ -275,7 +275,7 @@ int cmd_get_seq_messages(lua_State *L)
 			case HM_SEQ_PARAM_SET:
 			case HM_SEQ_PARAM_CLEARED:
 				lua_pushliteral(L, "param");
-				lua_pushinteger(L, message.data.param.num);
+				lua_pushinteger(L, message.data.param.num + 1);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "value");
@@ -286,7 +286,7 @@ int cmd_get_seq_messages(lua_State *L)
 			case HM_SEQ_PATCH_SET:
 			case HM_SEQ_PATCH_CLEARED:
 				lua_pushliteral(L, "patch");
-				lua_pushinteger(L, message.data.patch);
+				lua_pushinteger(L, message.data.patch + 1);
 				lua_settable(L, -3);
 				break;
 		}
