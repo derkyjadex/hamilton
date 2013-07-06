@@ -1,6 +1,6 @@
 local hm = require 'hamilton'
 
-local synths = {hm.get_synths()}
+local synths = hm.get_synths()
 hm.set_synth(1, synths[2])
 hm.set_synth(2, synths[2])
 

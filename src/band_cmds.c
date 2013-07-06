@@ -14,11 +14,14 @@ int cmd_get_synths(lua_State *L)
 	int n;
 	const HmSynthType *synths = hm_lib_get_synths(lib, &n);
 
+	lua_newtable(L);
 	for (int i = 0; i < n; i++) {
+		lua_pushinteger(L, i + 1);
 		lua_pushstring(L, synths[i].name);
+		lua_settable(L, -3);
 	}
 
-	return n;
+	return 1;
 }
 
 int cmd_set_synth(lua_State *L)
