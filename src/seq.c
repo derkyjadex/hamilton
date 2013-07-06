@@ -199,10 +199,12 @@ static EventNode *find_event(EventNode *start, uint32_t time, int channel, HmEve
 
 static EventNode *find_control_event(EventNode *start, uint32_t time, int channel, int control)
 {
-	EventNode *event;
-	while ((event = find_event(start, time, channel, HM_EV_CONTROL))) {
+	EventNode *event = start;
+	while ((event = find_event(event, time, channel, HM_EV_CONTROL))) {
 		if (event->event.data.control.num == control)
 			return event;
+
+		event = event->next;
 	}
 
 	return NULL;
@@ -210,10 +212,12 @@ static EventNode *find_control_event(EventNode *start, uint32_t time, int channe
 
 static EventNode *find_param_event(EventNode *start, uint32_t time, int channel, int param)
 {
-	EventNode *event;
-	while ((event = find_event(start, time, channel, HM_EV_PARAM))) {
+	EventNode *event = start;
+	while ((event = find_event(event, time, channel, HM_EV_PARAM))) {
 		if (event->event.data.param.num == param)
 			return event;
+
+		event = event->next;
 	}
 
 	return NULL;
@@ -371,7 +375,7 @@ static void clear_pitch(HmSeq *seq, int channel, uint32_t time)
 
 static void set_control(HmSeq *seq, EventNode *event)
 {
-	EventNode *foundEvent = find_control_event(foundEvent, event->event.time, event->event.channel, event->event.data.control.num);
+	EventNode *foundEvent = find_control_event(seq->head, event->event.time, event->event.channel, event->event.data.control.num);
 
 	FromAudioMessage message = {
 		.type = SEQ_MESSAGE,
@@ -430,7 +434,7 @@ static void clear_control(HmSeq *seq, int channel, uint32_t time, int control)
 
 static void set_param(HmSeq *seq, EventNode *event)
 {
-	EventNode *foundEvent = find_param_event(foundEvent, event->event.time, event->event.channel, event->event.data.param.num);
+	EventNode *foundEvent = find_param_event(seq->head, event->event.time, event->event.channel, event->event.data.param.num);
 
 	FromAudioMessage message = {
 		.type = SEQ_MESSAGE,
