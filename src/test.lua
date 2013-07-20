@@ -23,6 +23,8 @@ hm.add_note(2, 02500, 200, 58, 0.7)
 hm.add_note(2, 03000, 200, 58, 0.7)
 hm.add_note(2, 03500, 200, 58, 0.7)
 
+hm.seq_commit()
+
 hm.set_loop(00000, 04000)
 hm.set_looping(true)
 
@@ -30,5 +32,4 @@ hm.play()
 
 function frame()
 	local state = hm.get_band_state()
-	local messages = hm.get_seq_messages()
 end

@@ -21,6 +21,7 @@ int cmd_clear_set_param(lua_State *L);
 int cmd_add_set_patch(lua_State *L);
 int cmd_clear_set_patch(lua_State *L);
 
-int cmd_get_seq_messages(lua_State *L);
+int cmd_get_seq_items(lua_State *L);
+int cmd_seq_commit(lua_State *L);
 
 #endif

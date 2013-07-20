@@ -38,7 +38,9 @@ static const luaL_Reg lib[] = {
 	{"add_set_patch", cmd_add_set_patch},
 	{"clear_set_patch", cmd_clear_set_patch},
 
-	{"get_seq_messages", cmd_get_seq_messages},
+	{"get_seq_items", cmd_get_seq_items},
+	{"seq_commit", cmd_seq_commit},
+
 	{NULL, NULL}
 };
 

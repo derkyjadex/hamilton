@@ -4,6 +4,8 @@
  * See COPYING for details.
  */
 
+#include <stdlib.h>
+
 #include "seq_cmds.h"
 #include "hamilton/band.h"
 
@@ -205,123 +207,96 @@ int cmd_clear_set_patch(lua_State *L)
 	FINALLY_LUA(, 0)
 }
 
-static void push_type(lua_State *L, HmSeqMessage *message)
+int cmd_get_seq_items(lua_State *L)
 {
-	switch (message->type) {
-		case HM_SEQ_NOTE_ADDED:
-			lua_pushliteral(L, "note_added");
-			break;
-		case HM_SEQ_NOTE_REMOVED:
-			lua_pushliteral(L, "note_removed");
-			break;
-		case HM_SEQ_NOTE_UPDATED:
-			lua_pushliteral(L, "note_updated");
-			break;
-		case HM_SEQ_PITCH_SET:
-			lua_pushliteral(L, "pitch_set");
-			break;
-		case HM_SEQ_PITCH_CLEARED:
-			lua_pushliteral(L, "pitch_cleared");
-			break;
-		case HM_SEQ_CONTROL_SET:
-			lua_pushliteral(L, "control_set");
-			break;
-		case HM_SEQ_CONTROL_CLEARED:
-			lua_pushliteral(L, "control_cleared");
-			break;
-		case HM_SEQ_PARAM_SET:
-			lua_pushliteral(L, "param_set");
-			break;
-		case HM_SEQ_PARAM_CLEARED:
-			lua_pushliteral(L, "param_cleared");
-			break;
-		case HM_SEQ_PATCH_SET:
-			lua_pushliteral(L, "patch_set");
-			break;
-		case HM_SEQ_PATCH_CLEARED:
-			lua_pushliteral(L, "patch_cleared");
-			break;
-	}
-}
+	BEGIN()
 
-int cmd_get_seq_messages(lua_State *L)
-{
 	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
 	HmSeq *seq = hm_band_get_seq(band);
 
 	lua_newtable(L);
 	int n = 1;
 
-	HmSeqMessage message;
-	while (hm_seq_pop_message(seq, &message)) {
+	HmSeqItem *items = NULL;
+	int numItems;
+
+	TRY(hm_seq_get_items(seq, &items, &numItems));
+
+	for (int i = 0; i < numItems; i++) {
+		HmSeqItem *item = &items[i];
+
 		lua_pushinteger(L, n++);
 		lua_newtable(L);
 
-		lua_pushliteral(L, "type");
-		push_type(L, &message);
-		lua_settable(L, -3);
-
 		lua_pushliteral(L, "time");
-		lua_pushinteger(L, message.time);
+		lua_pushinteger(L, item->time);
 		lua_settable(L, -3);
 
 		lua_pushliteral(L, "channel");
-		lua_pushinteger(L, message.channel + 1);
+		lua_pushinteger(L, item->channel + 1);
 		lua_settable(L, -3);
 
-		switch (message.type) {
-			case HM_SEQ_NOTE_ADDED:
-			case HM_SEQ_NOTE_REMOVED:
-			case HM_SEQ_NOTE_UPDATED:
+		lua_pushliteral(L, "type");
+
+		switch (item->type) {
+			case HM_SEQ_NOTE:
 				lua_pushliteral(L, "note");
-				lua_pushlightuserdata(L, message.data.note.note);
+				lua_settable(L, -3);
+
+				lua_pushliteral(L, "note");
+				lua_pushlightuserdata(L, item->data.note.note);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "length");
-				lua_pushinteger(L, message.data.note.data.length);
+				lua_pushinteger(L, item->data.note.data.length);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "num");
-				lua_pushinteger(L, message.data.note.data.num);
+				lua_pushinteger(L, item->data.note.data.num);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "velocity");
-				lua_pushnumber(L, message.data.note.data.velocity);
+				lua_pushnumber(L, item->data.note.data.velocity);
 				lua_settable(L, -3);
 				break;
 
-			case HM_SEQ_PITCH_SET:
-			case HM_SEQ_PITCH_CLEARED:
+			case HM_SEQ_PITCH:
 				lua_pushliteral(L, "pitch");
-				lua_pushnumber(L, message.data.pitch);
 				lua_settable(L, -3);
 
-			case HM_SEQ_CONTROL_SET:
-			case HM_SEQ_CONTROL_CLEARED:
+				lua_pushliteral(L, "pitch");
+				lua_pushnumber(L, item->data.pitch);
+				lua_settable(L, -3);
+
+			case HM_SEQ_CONTROL:
 				lua_pushliteral(L, "control");
-				lua_pushinteger(L, message.data.control.num + 1);
+				lua_pushinteger(L, item->data.control.num + 1);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "value");
-				lua_pushnumber(L, message.data.control.value);
+				lua_pushnumber(L, item->data.control.value);
 				lua_settable(L, -3);
 				break;
 
-			case HM_SEQ_PARAM_SET:
-			case HM_SEQ_PARAM_CLEARED:
+			case HM_SEQ_PARAM:
 				lua_pushliteral(L, "param");
-				lua_pushinteger(L, message.data.param.num + 1);
+				lua_settable(L, -3);
+
+				lua_pushliteral(L, "param");
+				lua_pushinteger(L, item->data.param.num + 1);
 				lua_settable(L, -3);
 
 				lua_pushliteral(L, "value");
-				lua_pushnumber(L, message.data.param.value);
+				lua_pushnumber(L, item->data.param.value);
 				lua_settable(L, -3);
 				break;
 
-			case HM_SEQ_PATCH_SET:
-			case HM_SEQ_PATCH_CLEARED:
+			case HM_SEQ_PATCH:
 				lua_pushliteral(L, "patch");
-				lua_pushinteger(L, message.data.patch + 1);
+				lua_settable(L, -3);
+
+				lua_pushliteral(L, "patch");
+				lua_pushinteger(L, item->data.patch + 1);
 				lua_settable(L, -3);
 				break;
 		}
@@ -329,5 +304,21 @@ int cmd_get_seq_messages(lua_State *L)
 		lua_settable(L, -3);
 	}
 
-	return 1;
+	CATCH_LUA(, "error getting seq items");
+	FINALLY_LUA(
+		free(items);,
+		1)
+}
+
+int cmd_seq_commit(lua_State *L)
+{
+	BEGIN()
+
+	HmBand *band = lua_touserdata(L, lua_upvalueindex(1));
+	HmSeq *seq = hm_band_get_seq(band);
+
+	TRY(hm_seq_commit(seq));
+
+	CATCH_LUA(, "error commiting seq changes")
+	FINALLY_LUA(, 0)
 }

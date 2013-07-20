@@ -18,6 +18,8 @@ struct EventNode {
 	HmEvent event;
 };
 
+#define GET_NOTE(node) ((HmNote *)((void *)(node) - offsetof(HmNote, on)))
+
 struct HmNote {
 	HmNoteData data;
 	EventNode on, off;
@@ -25,51 +27,23 @@ struct HmNote {
 
 typedef struct {
 	enum {
-		ADD_NOTE,
-		REMOVE_NOTE,
-		UPDATE_NOTE,
-		SET_PITCH,
-		CLEAR_PITCH,
-		SET_CONTROL,
-		CLEAR_CONTROL,
-		SET_PARAM,
-		CLEAR_PARAM,
-		SET_PATCH,
-		CLEAR_PATCH
+		SWAP_ARRAY
 	} type;
 
 	union {
-		HmNote *addNote, *removeNote;
 		struct {
-			HmNote *note;
-			uint32_t time;
-			HmNoteData data;
-		} updateNote;
-
-		EventNode *setPitch, *setControl, *setParam, *setPatch;
-
-		struct {
-			int channel;
-			uint32_t time;
-		} clearPitch, clearPatch;
-
-		struct {
-			int channel;
-			uint32_t time;
-			int num;
-		} clearControl, clearParam;
-
+			HmEvent *ptr;
+			int length;
+		} array;
 	} data;
 } ToAudioMessage;
 
 typedef struct {
 	enum {
-		FREE_PTR,
-		SEQ_MESSAGE
+		FREE_PTR
 	} type;
 	union {
 		void *ptr;
-		HmSeqMessage message;
 	} data;
 } FromAudioMessage;
 
@@ -78,6 +52,9 @@ struct HmSeq {
 	HmMQ *fromAudio;
 
 	EventNode *head, *tail;
+	int numEvents;
+	HmEvent *array;
+	int arrayLength;
 };
 
 AlError hm_seq_init(HmSeq **result)
@@ -92,6 +69,10 @@ AlError hm_seq_init(HmSeq **result)
 
 	seq->head = NULL;
 	seq->tail = NULL;
+	seq->numEvents = 0;
+
+	seq->array = NULL;
+	seq->arrayLength = 0;
 
 	TRY(mq_init(&seq->toAudio, sizeof(ToAudioMessage), 128));
 	TRY(mq_init(&seq->fromAudio, sizeof(FromAudioMessage), 128));
@@ -111,28 +92,28 @@ void hm_seq_free(HmSeq *seq)
 {
 	if (seq) {
 		update_sequence(seq);
-		HmSeqMessage message;
-		while (hm_seq_pop_message(seq, &message)) { }
+		hm_seq_process_messages(seq);
 
-		EventNode *event = seq->head;
-		while (event) {
+		EventNode *node = seq->head;
+		while (node) {
 			void *freePtr;
 
-			if (event->event.type == HM_EV_NOTE_ON) {
-				HmNote *note = (void *)event - offsetof(HmNote, on);
+			if (node->event.type == HM_EV_NOTE_ON) {
+				HmNote *note = GET_NOTE(node);
 				remove_event(seq, &note->off);
 				freePtr = note;
 
 			} else {
-				freePtr = event;
+				freePtr = node;
 			}
 
-			event = event->next;
+			node = node->next;
 			free(freePtr);
 		}
 
 		mq_free(seq->toAudio);
 		mq_free(seq->fromAudio);
+		free(seq->array);
 		free(seq);
 	}
 }
@@ -167,6 +148,8 @@ static void insert_event(HmSeq *seq, EventNode *event)
 			event->next = next;
 		}
 	}
+
+	seq->numEvents++;
 }
 
 static void remove_event(HmSeq *seq, EventNode *event)
@@ -185,6 +168,8 @@ static void remove_event(HmSeq *seq, EventNode *event)
 
 	event->prev = NULL;
 	event->next = NULL;
+
+	seq->numEvents--;
 }
 
 static EventNode *find_event(EventNode *start, uint32_t time, int channel, HmEventType type)
@@ -235,395 +220,69 @@ static void free_from_audio(HmSeq *seq, void *ptr)
 	mq_push(seq->fromAudio, &message);
 }
 
-static void add_note(HmSeq *seq, HmNote *note)
-{
-	insert_event(seq, &note->on);
-	insert_event(seq, &note->off);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_NOTE_ADDED,
-				.time = note->on.event.time,
-				.channel = note->on.event.channel,
-				.data = {
-					.note = {
-						.note = note,
-						.data = note->data
-					}
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-}
-
-static void remove_note(HmSeq *seq, HmNote *note)
-{
-	remove_event(seq, &note->on);
-	remove_event(seq, &note->off);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_NOTE_REMOVED,
-				.time = note->on.event.time,
-				.channel = note->on.event.channel,
-				.data = {
-					.note = {
-						.note = note,
-						.data = note->data
-					}
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-}
-
-static void update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *noteData)
-{
-	if (note->on.event.time != time || note->data.length != noteData->length) {
-		remove_event(seq, &note->on);
-		remove_event(seq, &note->off);
-
-		note->on.event.time = time;
-		note->off.event.time = time + noteData->length;
-
-		insert_event(seq, &note->on);
-		insert_event(seq, &note->off);
-	}
-
-	note->data = *noteData;
-	note->on.event.data.note.num = noteData->num;
-	note->on.event.data.note.velocity = noteData->velocity;
-	note->off.event.data.note.num = noteData->num;
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_NOTE_UPDATED,
-				.time = note->on.event.time,
-				.channel = note->on.event.channel,
-				.data = {
-					.note = {
-						.note = note,
-						.data = note->data
-					}
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-}
-
-static void set_pitch(HmSeq *seq, EventNode *event)
-{
-	EventNode *foundEvent = find_event(seq->head, event->event.time, event->event.channel, HM_EV_PITCH);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_PITCH_SET,
-				.time = event->event.time,
-				.channel = event->event.channel,
-				.data = {
-					.pitch = event->event.data.pitch
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-
-	if (!foundEvent) {
-		insert_event(seq, event);
-
-	} else {
-		foundEvent->event.data.pitch = event->event.data.pitch;
-		free_from_audio(seq, event);
-	}
-}
-
-static void clear_pitch(HmSeq *seq, int channel, uint32_t time)
-{
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PITCH);
-
-	if (event) {
-		FromAudioMessage message = {
-			.type = SEQ_MESSAGE,
-			.data = {
-				.message = {
-					.type = HM_SEQ_PITCH_CLEARED,
-					.time = event->event.time,
-					.channel = event->event.channel,
-					.data = {
-						.pitch = event->event.data.pitch
-					}
-				}
-			}
-		};
-		mq_push(seq->fromAudio, &message);
-
-		remove_event(seq, event);
-		free_from_audio(seq, event);
-	}
-}
-
-static void set_control(HmSeq *seq, EventNode *event)
-{
-	EventNode *foundEvent = find_control_event(seq->head, event->event.time, event->event.channel, event->event.data.control.num);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_CONTROL_SET,
-				.time = event->event.time,
-				.channel = event->event.channel,
-				.data = {
-					.control = {
-						.num = event->event.data.control.num,
-						.value = event->event.data.control.value
-					}
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-
-	if (!foundEvent) {
-		insert_event(seq, event);
-
-	} else {
-		foundEvent->event.data.control.value = event->event.data.control.value;
-		free_from_audio(seq, event);
-	}
-}
-
-static void clear_control(HmSeq *seq, int channel, uint32_t time, int control)
-{
-	EventNode *event = find_control_event(seq->head, time, channel, control);
-
-	if (event) {
-		FromAudioMessage message = {
-			.type = SEQ_MESSAGE,
-			.data = {
-				.message = {
-					.type = HM_SEQ_CONTROL_CLEARED,
-					.time = event->event.time,
-					.channel = event->event.channel,
-					.data = {
-						.control = {
-							.num = event->event.data.control.num,
-							.value = event->event.data.control.value
-						}
-					}
-				}
-			}
-		};
-		mq_push(seq->fromAudio, &message);
-
-		remove_event(seq, event);
-		free_from_audio(seq, event);
-	}
-}
-
-static void set_param(HmSeq *seq, EventNode *event)
-{
-	EventNode *foundEvent = find_param_event(seq->head, event->event.time, event->event.channel, event->event.data.param.num);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_PARAM_SET,
-				.time = event->event.time,
-				.channel = event->event.channel,
-				.data = {
-					.param = {
-						.num = event->event.data.param.num,
-						.value = event->event.data.param.value
-					}
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-
-	if (!foundEvent) {
-		insert_event(seq, event);
-
-	} else {
-		foundEvent->event.data.param.value = event->event.data.param.value;
-		free_from_audio(seq, event);
-	}
-}
-
-static void clear_param(HmSeq *seq, int channel, uint32_t time, int param)
-{
-	EventNode *event = find_param_event(seq->head, time, channel, param);
-
-	if (event) {
-		FromAudioMessage message = {
-			.type = SEQ_MESSAGE,
-			.data = {
-				.message = {
-					.type = HM_SEQ_PARAM_CLEARED,
-					.time = event->event.time,
-					.channel = event->event.channel,
-					.data = {
-						.param = {
-							.num = event->event.data.param.num,
-							.value = event->event.data.param.value
-						}
-					}
-				}
-			}
-		};
-		mq_push(seq->fromAudio, &message);
-
-		remove_event(seq, event);
-		free_from_audio(seq, event);
-	}
-}
-
-static void set_patch(HmSeq *seq, EventNode *event)
-{
-	EventNode *foundEvent = find_event(seq->head, event->event.time, event->event.channel, HM_EV_PATCH);
-
-	FromAudioMessage message = {
-		.type = SEQ_MESSAGE,
-		.data = {
-			.message = {
-				.type = HM_SEQ_PATCH_SET,
-				.time = event->event.time,
-				.channel = event->event.channel,
-				.data = {
-					.patch = event->event.data.patch
-				}
-			}
-		}
-	};
-	mq_push(seq->fromAudio, &message);
-
-	if (!foundEvent) {
-		insert_event(seq, event);
-
-	} else {
-		foundEvent->event.data.patch = event->event.data.patch;
-		free_from_audio(seq, event);
-	}
-}
-
-static void clear_patch(HmSeq *seq, int channel, uint32_t time)
-{
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PATCH);
-
-	if (event) {
-		FromAudioMessage message = {
-			.type = SEQ_MESSAGE,
-			.data = {
-				.message = {
-					.type = HM_SEQ_PATCH_CLEARED,
-					.time = event->event.time,
-					.channel = event->event.channel,
-					.data = {
-						.patch = event->event.data.patch
-					}
-				}
-			}
-		};
-		mq_push(seq->fromAudio, &message);
-
-		remove_event(seq, event);
-		free_from_audio(seq, event);
-	}
-}
-
 static void update_sequence(HmSeq *seq)
 {
 	ToAudioMessage message;
 	while (mq_pop(seq->toAudio, &message)) {
 		switch (message.type) {
-			case ADD_NOTE:
-				add_note(seq, message.data.addNote);
-				break;
-
-			case REMOVE_NOTE:
-				remove_note(seq, message.data.removeNote);
-				break;
-
-			case UPDATE_NOTE:
-				update_note(seq, message.data.updateNote.note, &message.data.updateNote.time, &message.data.updateNote.data);
-				break;
-
-			case SET_PITCH:
-				set_pitch(seq, message.data.setPitch);
-				break;
-
-			case CLEAR_PITCH:
-				clear_pitch(seq, message.data.clearPitch.time, message.data.clearPitch.channel);
-				break;
-
-			case SET_CONTROL:
-				set_control(seq, message.data.setControl);
-				break;
-
-			case CLEAR_CONTROL:
-				clear_control(seq, message.data.clearControl.channel, message.data.clearControl.time, message.data.clearControl.num);
-				break;
-
-			case SET_PARAM:
-				set_param(seq, message.data.setParam);
-				break;
-
-			case CLEAR_PARAM:
-				clear_param(seq, message.data.clearParam.channel, message.data.clearParam.time, message.data.clearParam.num);
-				break;
-
-			case SET_PATCH:
-				set_patch(seq, message.data.setPatch);
-				break;
-
-			case CLEAR_PATCH:
-				clear_patch(seq, message.data.clearPatch.time, message.data.clearPatch.channel);
+			case SWAP_ARRAY:
+				free_from_audio(seq, seq->array);
+				seq->array = message.data.array.ptr;
+				seq->arrayLength = message.data.array.length;
 				break;
 		}
 	}
 }
 
-int hm_seq_get_events(HmSeq *seq, HmEvent *events, int numEvents, uint64_t start, uint64_t end, double sampleRate)
+static HmEvent *find_first_event(HmEvent *events, int length, uint32_t time)
+{
+	if (length == 0)
+		return events;
+
+	int a = 0;
+	int b = length - 1;
+
+	while (a < b) {
+		int m = a + (b - a) / 2;
+
+		if (events[m].time < time) {
+			a = m + 1;
+		} else {
+			b = m;
+		}
+	}
+
+	if (events[a].time < time) {
+		a = length;
+	}
+
+	return events + a;
+}
+
+int hm_seq_get_events(HmSeq *seq, HmEvent *dest, int numEvents, uint64_t start, uint64_t end, double sampleRate)
 {
 	update_sequence(seq);
 
 	uint32_t startTick = ceil((double)start * HM_SEQ_TICK_RATE / sampleRate);
 	uint32_t endTick = ceil((double)end * HM_SEQ_TICK_RATE / sampleRate) - 1;
 
-	EventNode *event = seq->head;
-	while (event && event->event.time < startTick) {
-		event = event->next;
+	HmEvent *src = find_first_event(seq->array, seq->arrayLength, startTick);
+	HmEvent *srcEnd = seq->array + seq->arrayLength;
+
+	int n = 0;
+	while (src < srcEnd && src->time <= endTick && n < numEvents) {
+		*dest = *src;
+		dest->time = (dest->time - startTick) * sampleRate / HM_SEQ_TICK_RATE;
+
+		src++;
+		dest++;
+		n++;
 	}
 
-	HmEvent *outEvent = events;
-	int numWritten = 0;
-	while (event && event->event.time <= endTick && numWritten < numEvents) {
-		*outEvent = event->event;
-		outEvent->time = (outEvent->time - startTick) * sampleRate / HM_SEQ_TICK_RATE;
-
-		outEvent++;
-		numWritten++;
-
-		event = event->next;
-	}
-
-	return numWritten;
+	return n;
 }
 
-bool hm_seq_pop_message(HmSeq *seq, HmSeqMessage *message)
+void hm_seq_process_messages(HmSeq *seq)
 {
 	FromAudioMessage audioMessage;
 	while (mq_pop(seq->fromAudio, &audioMessage)) {
@@ -631,14 +290,97 @@ bool hm_seq_pop_message(HmSeq *seq, HmSeqMessage *message)
 			case FREE_PTR:
 				free(audioMessage.data.ptr);
 				break;
+		}
+	}
+}
 
-			case SEQ_MESSAGE:
-				*message = audioMessage.data.message;
-				return true;
+AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
+{
+	BEGIN()
+
+	HmSeqItem *items = NULL;
+	int numItems = 0;
+	TRY(al_malloc(&items, sizeof(HmSeqItem), seq->numEvents));
+
+	HmSeqItem *item = items;
+	for (EventNode *node = seq->head; node; node = node->next, item++) {
+		switch (node->event.type) {
+			case HM_EV_NOTE_ON:
+				*item = (HmSeqItem){
+					.type = HM_SEQ_NOTE,
+					.time = node->event.time,
+					.channel = node->event.channel,
+					.data = {
+						.note = {
+							.note = GET_NOTE(node),
+							.data = GET_NOTE(node)->data
+						}
+					}
+				};
+				break;
+
+			case HM_EV_NOTE_OFF:
+				break;
+
+			case HM_EV_PITCH:
+				*item = (HmSeqItem){
+					.type = HM_SEQ_PITCH,
+					.time = node->event.time,
+					.channel = node->event.channel,
+					.data = {
+						.pitch = node->event.data.pitch
+					}
+				};
+				break;
+
+			case HM_EV_CONTROL:
+				*item = (HmSeqItem){
+					.type = HM_SEQ_CONTROL,
+					.time = node->event.time,
+					.channel = node->event.channel,
+					.data = {
+						.control = {
+							.num = node->event.data.control.num,
+							.value = node->event.data.control.value
+						}
+					}
+				};
+				break;
+
+			case HM_EV_PARAM:
+				*item = (HmSeqItem){
+					.type = HM_SEQ_PARAM,
+					.time = node->event.time,
+					.channel = node->event.channel,
+					.data = {
+						.param = {
+							.num = node->event.data.param.num,
+							.value = node->event.data.param.value
+						}
+					}
+				};
+				break;
+
+			case HM_EV_PATCH:
+				*item = (HmSeqItem){
+					.type = HM_SEQ_PATCH,
+					.time = node->event.time,
+					.channel = node->event.channel,
+					.data = {
+						.patch = node->event.data.patch
+					}
+				};
+				break;
 		}
 	}
 
-	return false;
+	*result = items;
+	*resultLength = numItems;
+
+	CATCH(
+		free(items);
+	)
+	FINALLY()
 }
 
 AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data)
@@ -680,15 +422,8 @@ AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data
 		}
 	};
 
-	ToAudioMessage message = {
-		.type = ADD_NOTE,
-		.data = {
-			.addNote = note
-		}
-	};
-
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+	insert_event(seq, &note->on);
+	insert_event(seq, &note->off);
 
 	CATCH(
 		free(note);
@@ -700,15 +435,9 @@ AlError hm_seq_remove_note(HmSeq *seq, HmNote *note)
 {
 	BEGIN()
 
-	ToAudioMessage message = {
-		.type = REMOVE_NOTE,
-		.data = {
-			.removeNote = note
-		}
-	};
-
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+	remove_event(seq, &note->on);
+	remove_event(seq, &note->off);
+	free(note);
 
 	PASS()
 }
@@ -717,19 +446,21 @@ AlError hm_seq_update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *
 {
 	BEGIN()
 
-	ToAudioMessage message = {
-		.type = UPDATE_NOTE,
-		.data = {
-			.updateNote = {
-				.note = note,
-				.time = time,
-				.data = *data
-			}
-		}
-	};
+	if (note->on.event.time != time || note->data.length != data->length) {
+		remove_event(seq, &note->on);
+		remove_event(seq, &note->off);
 
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+		note->on.event.time = time;
+		note->off.event.time = time + data->length;
+
+		insert_event(seq, &note->on);
+		insert_event(seq, &note->off);
+	}
+
+	note->data = *data;
+	note->on.event.data.note.num = data->num;
+	note->on.event.data.note.velocity = data->velocity;
+	note->off.event.data.note.num = data->num;
 
 	PASS()
 }
@@ -738,29 +469,27 @@ AlError hm_seq_set_pitch(HmSeq *seq, int channel, uint32_t time, float pitch)
 {
 	BEGIN()
 
-	EventNode *event = NULL;
-	TRY(al_malloc(&event, sizeof(EventNode), 1));
+	EventNode *event = find_event(seq->head, time, channel, HM_EV_PITCH);
 
-	event->prev = NULL;
-	event->next = NULL;
-	event->event = (HmEvent){
-		.time = time,
-		.channel = channel,
-		.type = HM_EV_PITCH,
-		.data = {
-			.pitch = pitch
-		}
-	};
+	if (event) {
+		event->event.data.pitch = pitch;
 
-	ToAudioMessage message = {
-		.type = SET_PITCH,
-		.data = {
-			.setPitch = event
-		}
-	};
+	} else {
+		TRY(al_malloc(&event, sizeof(EventNode), 1));
 
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+		event->prev = NULL;
+		event->next = NULL;
+		event->event = (HmEvent){
+			.time = time,
+			.channel = channel,
+			.type = HM_EV_PITCH,
+			.data = {
+				.pitch = pitch
+			}
+		};
+
+		insert_event(seq, event);
+	}
 
 	PASS()
 }
@@ -769,18 +498,11 @@ AlError hm_seq_clear_pitch(HmSeq *seq, int channel, uint32_t time)
 {
 	BEGIN()
 
-	ToAudioMessage message = {
-		.type = CLEAR_PITCH,
-		.data = {
-			.clearPitch = {
-				.channel = channel,
-				.time = time
-			}
-		}
-	};
-
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+	EventNode *event = find_event(seq->head, time, channel, HM_EV_PITCH);
+	if (event) {
+		remove_event(seq, event);
+		free(event);
+	}
 
 	PASS()
 }
@@ -789,32 +511,30 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 {
 	BEGIN()
 
-	EventNode *event = NULL;
-	TRY(al_malloc(&event, sizeof(EventNode), 1));
+	EventNode *event = find_control_event(seq->head, time, channel, control);
 
-	event->prev = NULL;
-	event->next = NULL;
-	event->event = (HmEvent){
-		.time = time,
-		.channel = channel,
-		.type = HM_EV_CONTROL,
-		.data = {
-			.control = {
-				.num = control,
-				.value = value
+	if (event) {
+		event->event.data.control.value = value;
+
+	} else {
+		TRY(al_malloc(&event, sizeof(EventNode), 1));
+
+		event->prev = NULL;
+		event->next = NULL;
+		event->event = (HmEvent){
+			.time = time,
+			.channel = channel,
+			.type = HM_EV_CONTROL,
+			.data = {
+				.control = {
+					.num = control,
+					.value = value
+				}
 			}
-		}
-	};
+		};
 
-	ToAudioMessage message = {
-		.type = SET_CONTROL,
-		.data = {
-			.setControl = event
-		}
-	};
-
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+		insert_event(seq, event);
+	}
 
 	PASS()
 }
@@ -823,19 +543,12 @@ AlError hm_seq_clear_control(HmSeq *seq, int channel, uint32_t time, int control
 {
 	BEGIN()
 
-	ToAudioMessage message = {
-		.type = CLEAR_CONTROL,
-		.data = {
-			.clearControl = {
-				.channel = channel,
-				.time = time,
-				.num = control
-			}
-		}
-	};
+	EventNode *event = find_control_event(seq->head, time, channel, control);
 
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+	if (event) {
+		remove_event(seq, event);
+		free(event);
+	}
 
 	PASS()
 }
@@ -844,32 +557,30 @@ AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, floa
 {
 	BEGIN()
 
-	EventNode *event = NULL;
-	TRY(al_malloc(&event, sizeof(EventNode), 1));
+	EventNode *event = find_param_event(seq->head, time, channel, param);
 
-	event->prev = NULL;
-	event->next = NULL;
-	event->event = (HmEvent){
-		.time = time,
-		.channel = channel,
-		.type = HM_EV_PARAM,
-		.data = {
-			.param = {
-				.num = param,
-				.value = value
+	if (event) {
+		event->event.data.param.value = value;
+
+	} else {
+		TRY(al_malloc(&event, sizeof(EventNode), 1));
+
+		event->prev = NULL;
+		event->next = NULL;
+		event->event = (HmEvent){
+			.time = time,
+			.channel = channel,
+			.type = HM_EV_PARAM,
+			.data = {
+				.param = {
+					.num = param,
+					.value = value
+				}
 			}
-		}
-	};
+		};
 
-	ToAudioMessage message = {
-		.type = SET_PARAM,
-		.data = {
-			.setParam = event
-		}
-	};
-
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+		insert_event(seq, event);
+	}
 
 	PASS()
 }
@@ -878,19 +589,12 @@ AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int param)
 {
 	BEGIN()
 
-	ToAudioMessage message = {
-		.type = CLEAR_PARAM,
-		.data = {
-			.clearParam = {
-				.channel = channel,
-				.time = time,
-				.num = param
-			}
-		}
-	};
+	EventNode *event = find_param_event(seq->head, time, channel, param);
 
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+	if (event) {
+		remove_event(seq, event);
+		free(event);
+	}
 
 	PASS()
 }
@@ -899,29 +603,27 @@ AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch)
 {
 	BEGIN()
 
-	EventNode *event = NULL;
-	TRY(al_malloc(&event, sizeof(EventNode), 1));
+	EventNode *event = find_event(seq->head, time, channel, HM_EV_PATCH);
 
-	event->prev = NULL;
-	event->next = NULL;
-	event->event = (HmEvent){
-		.time = time,
-		.channel = channel,
-		.type = HM_EV_PATCH,
-		.data = {
-			.patch = patch
-		}
-	};
+	if (event) {
+		event->event.data.patch = patch;
 
-	ToAudioMessage message = {
-		.type = SET_PATCH,
-		.data = {
-			.setPitch = event
-		}
-	};
+	} else {
+		TRY(al_malloc(&event, sizeof(EventNode), 1));
 
-	if (!mq_push(seq->toAudio, &message))
-		THROW(AL_ERROR_MEMORY);
+		event->prev = NULL;
+		event->next = NULL;
+		event->event = (HmEvent){
+			.time = time,
+			.channel = channel,
+			.type = HM_EV_PATCH,
+			.data = {
+				.patch = patch
+			}
+		};
+
+		insert_event(seq, event);
+	}
 
 	PASS()
 }
@@ -930,12 +632,34 @@ AlError hm_seq_clear_patch(HmSeq *seq, int channel, uint32_t time)
 {
 	BEGIN()
 
+	EventNode *event = find_event(seq->head, time, channel, HM_EV_PATCH);
+
+	if (event) {
+		remove_event(seq, event);
+		free(event);
+	}
+
+	PASS()
+}
+
+AlError hm_seq_commit(HmSeq *seq)
+{
+	BEGIN()
+
+	HmEvent *array = NULL;
+	TRY(al_malloc(&array, sizeof(HmEvent), seq->numEvents));
+
+	HmEvent *event = array;
+	for (EventNode *node = seq->head; node; node = node->next, event++) {
+		*event = node->event;
+	}
+
 	ToAudioMessage message = {
-		.type = CLEAR_PATCH,
+		.type = SWAP_ARRAY,
 		.data = {
-			.clearPatch = {
-				.channel = channel,
-				.time = time
+			.array = {
+				.ptr = array,
+				.length = seq->numEvents
 			}
 		}
 	};
@@ -943,5 +667,8 @@ AlError hm_seq_clear_patch(HmSeq *seq, int channel, uint32_t time)
 	if (!mq_push(seq->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
-	PASS()
+	CATCH(
+		free(array);
+	)
+	FINALLY()
 }

@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 	}
 
 	while (true) {
+		hm_seq_process_messages(hm_band_get_seq(band));
+
 		lua_getglobal(L, "frame");
 		if (!lua_isnil(L, -1)) {
 			lua_call(L, 0, 0);
