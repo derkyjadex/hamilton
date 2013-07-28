@@ -85,7 +85,7 @@ AlError hm_seq_init(HmSeq **result)
 	FINALLY()
 }
 
-static void remove_event(HmSeq *seq, EventNode *event);
+static void remove_node(HmSeq *seq, EventNode *node);
 static void update_sequence(HmSeq *seq);
 
 void hm_seq_free(HmSeq *seq)
@@ -100,7 +100,7 @@ void hm_seq_free(HmSeq *seq)
 
 			if (node->event.type == HM_EV_NOTE_ON) {
 				HmNote *note = GET_NOTE(node);
-				remove_event(seq, &note->off);
+				remove_node(seq, &note->off);
 				freePtr = note;
 
 			} else {
@@ -118,91 +118,91 @@ void hm_seq_free(HmSeq *seq)
 	}
 }
 
-static void insert_event(HmSeq *seq, EventNode *event)
+static void insert_node(HmSeq *seq, EventNode *node)
 {
 	EventNode *next = seq->head;
 
 	if (!next) {
-		seq->head = event;
-		seq->tail = event;
+		seq->head = node;
+		seq->tail = node;
 
 	} else {
-		while (next && next->event.time <= event->event.time) {
+		while (next && next->event.time <= node->event.time) {
 			next = next->next;
 		}
 
 		if (!next) {
-			seq->tail->next = event;
-			event->prev = seq->tail;
-			seq->tail = event;
+			seq->tail->next = node;
+			node->prev = seq->tail;
+			seq->tail = node;
 
 		} else if (!next->prev) {
-			seq->head = event;
-			next->prev = event;
-			event->next = next;
+			seq->head = node;
+			next->prev = node;
+			node->next = next;
 
 		} else {
-			next->prev->next = event;
-			event->prev = next->prev;
-			next->prev = event;
-			event->next = next;
+			next->prev->next = node;
+			node->prev = next->prev;
+			next->prev = node;
+			node->next = next;
 		}
 	}
 
 	seq->numEvents++;
 }
 
-static void remove_event(HmSeq *seq, EventNode *event)
+static void remove_node(HmSeq *seq, EventNode *node)
 {
-	if (event->prev) {
-		event->prev->next = event->next;
+	if (node->prev) {
+		node->prev->next = node->next;
 	} else {
-		seq->head = event->next;
+		seq->head = node->next;
 	}
 
-	if (event->next) {
-		event->next->prev = event->prev;
+	if (node->next) {
+		node->next->prev = node->prev;
 	} else {
-		seq->tail = event->prev;
+		seq->tail = node->prev;
 	}
 
-	event->prev = NULL;
-	event->next = NULL;
+	node->prev = NULL;
+	node->next = NULL;
 
 	seq->numEvents--;
 }
 
-static EventNode *find_event(EventNode *start, uint32_t time, int channel, HmEventType type)
+static EventNode *find_node(EventNode *start, uint32_t time, int channel, HmEventType type)
 {
-	for (EventNode *event = start; event && event->event.time <= time; event = event->next) {
-		if (event->event.time == time && event->event.channel == channel && event->event.type == type)
-			return event;
+	for (EventNode *node = start; node && node->event.time <= time; node = node->next) {
+		if (node->event.time == time && node->event.channel == channel && node->event.type == type)
+			return node;
 	}
 
 	return NULL;
 }
 
-static EventNode *find_control_event(EventNode *start, uint32_t time, int channel, int control)
+static EventNode *find_control_node(EventNode *start, uint32_t time, int channel, int control)
 {
-	EventNode *event = start;
-	while ((event = find_event(event, time, channel, HM_EV_CONTROL))) {
-		if (event->event.data.control.num == control)
-			return event;
+	EventNode *node = start;
+	while ((node = find_node(node, time, channel, HM_EV_CONTROL))) {
+		if (node->event.data.control.num == control)
+			return node;
 
-		event = event->next;
+		node = node->next;
 	}
 
 	return NULL;
 }
 
-static EventNode *find_param_event(EventNode *start, uint32_t time, int channel, int param)
+static EventNode *find_param_node(EventNode *start, uint32_t time, int channel, int param)
 {
-	EventNode *event = start;
-	while ((event = find_event(event, time, channel, HM_EV_PARAM))) {
-		if (event->event.data.param.num == param)
-			return event;
+	EventNode *node = start;
+	while ((node = find_node(node, time, channel, HM_EV_PARAM))) {
+		if (node->event.data.param.num == param)
+			return node;
 
-		event = event->next;
+		node = node->next;
 	}
 
 	return NULL;
@@ -422,8 +422,8 @@ AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data
 		}
 	};
 
-	insert_event(seq, &note->on);
-	insert_event(seq, &note->off);
+	insert_node(seq, &note->on);
+	insert_node(seq, &note->off);
 
 	CATCH(
 		free(note);
@@ -435,8 +435,8 @@ AlError hm_seq_remove_note(HmSeq *seq, HmNote *note)
 {
 	BEGIN()
 
-	remove_event(seq, &note->on);
-	remove_event(seq, &note->off);
+	remove_node(seq, &note->on);
+	remove_node(seq, &note->off);
 	free(note);
 
 	PASS()
@@ -447,14 +447,14 @@ AlError hm_seq_update_note(HmSeq *seq, HmNote *note, uint32_t time, HmNoteData *
 	BEGIN()
 
 	if (note->on.event.time != time || note->data.length != data->length) {
-		remove_event(seq, &note->on);
-		remove_event(seq, &note->off);
+		remove_node(seq, &note->on);
+		remove_node(seq, &note->off);
 
 		note->on.event.time = time;
 		note->off.event.time = time + data->length;
 
-		insert_event(seq, &note->on);
-		insert_event(seq, &note->off);
+		insert_node(seq, &note->on);
+		insert_node(seq, &note->off);
 	}
 
 	note->data = *data;
@@ -469,17 +469,17 @@ AlError hm_seq_set_pitch(HmSeq *seq, int channel, uint32_t time, float pitch)
 {
 	BEGIN()
 
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PITCH);
+	EventNode *node = find_node(seq->head, time, channel, HM_EV_PITCH);
 
-	if (event) {
-		event->event.data.pitch = pitch;
+	if (node) {
+		node->event.data.pitch = pitch;
 
 	} else {
-		TRY(al_malloc(&event, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode), 1));
 
-		event->prev = NULL;
-		event->next = NULL;
-		event->event = (HmEvent){
+		node->prev = NULL;
+		node->next = NULL;
+		node->event = (HmEvent){
 			.time = time,
 			.channel = channel,
 			.type = HM_EV_PITCH,
@@ -488,7 +488,7 @@ AlError hm_seq_set_pitch(HmSeq *seq, int channel, uint32_t time, float pitch)
 			}
 		};
 
-		insert_event(seq, event);
+		insert_node(seq, node);
 	}
 
 	PASS()
@@ -498,10 +498,10 @@ AlError hm_seq_clear_pitch(HmSeq *seq, int channel, uint32_t time)
 {
 	BEGIN()
 
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PITCH);
-	if (event) {
-		remove_event(seq, event);
-		free(event);
+	EventNode *node = find_node(seq->head, time, channel, HM_EV_PITCH);
+	if (node) {
+		remove_node(seq, node);
+		free(node);
 	}
 
 	PASS()
@@ -511,17 +511,17 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 {
 	BEGIN()
 
-	EventNode *event = find_control_event(seq->head, time, channel, control);
+	EventNode *node = find_control_node(seq->head, time, channel, control);
 
-	if (event) {
-		event->event.data.control.value = value;
+	if (node) {
+		node->event.data.control.value = value;
 
 	} else {
-		TRY(al_malloc(&event, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode), 1));
 
-		event->prev = NULL;
-		event->next = NULL;
-		event->event = (HmEvent){
+		node->prev = NULL;
+		node->next = NULL;
+		node->event = (HmEvent){
 			.time = time,
 			.channel = channel,
 			.type = HM_EV_CONTROL,
@@ -533,7 +533,7 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 			}
 		};
 
-		insert_event(seq, event);
+		insert_node(seq, node);
 	}
 
 	PASS()
@@ -543,11 +543,10 @@ AlError hm_seq_clear_control(HmSeq *seq, int channel, uint32_t time, int control
 {
 	BEGIN()
 
-	EventNode *event = find_control_event(seq->head, time, channel, control);
-
-	if (event) {
-		remove_event(seq, event);
-		free(event);
+	EventNode *node = find_control_node(seq->head, time, channel, control);
+	if (node) {
+		remove_node(seq, node);
+		free(node);
 	}
 
 	PASS()
@@ -557,17 +556,17 @@ AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, floa
 {
 	BEGIN()
 
-	EventNode *event = find_param_event(seq->head, time, channel, param);
+	EventNode *node = find_param_node(seq->head, time, channel, param);
 
-	if (event) {
-		event->event.data.param.value = value;
+	if (node) {
+		node->event.data.param.value = value;
 
 	} else {
-		TRY(al_malloc(&event, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode), 1));
 
-		event->prev = NULL;
-		event->next = NULL;
-		event->event = (HmEvent){
+		node->prev = NULL;
+		node->next = NULL;
+		node->event = (HmEvent){
 			.time = time,
 			.channel = channel,
 			.type = HM_EV_PARAM,
@@ -579,7 +578,7 @@ AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, floa
 			}
 		};
 
-		insert_event(seq, event);
+		insert_node(seq, node);
 	}
 
 	PASS()
@@ -589,11 +588,10 @@ AlError hm_seq_clear_param(HmSeq *seq, int channel, uint32_t time, int param)
 {
 	BEGIN()
 
-	EventNode *event = find_param_event(seq->head, time, channel, param);
-
-	if (event) {
-		remove_event(seq, event);
-		free(event);
+	EventNode *node = find_param_node(seq->head, time, channel, param);
+	if (node) {
+		remove_node(seq, node);
+		free(node);
 	}
 
 	PASS()
@@ -603,17 +601,17 @@ AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch)
 {
 	BEGIN()
 
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PATCH);
+	EventNode *node = find_node(seq->head, time, channel, HM_EV_PATCH);
 
-	if (event) {
-		event->event.data.patch = patch;
+	if (node) {
+		node->event.data.patch = patch;
 
 	} else {
-		TRY(al_malloc(&event, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode), 1));
 
-		event->prev = NULL;
-		event->next = NULL;
-		event->event = (HmEvent){
+		node->prev = NULL;
+		node->next = NULL;
+		node->event = (HmEvent){
 			.time = time,
 			.channel = channel,
 			.type = HM_EV_PATCH,
@@ -622,7 +620,7 @@ AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch)
 			}
 		};
 
-		insert_event(seq, event);
+		insert_node(seq, node);
 	}
 
 	PASS()
@@ -632,11 +630,10 @@ AlError hm_seq_clear_patch(HmSeq *seq, int channel, uint32_t time)
 {
 	BEGIN()
 
-	EventNode *event = find_event(seq->head, time, channel, HM_EV_PATCH);
-
-	if (event) {
-		remove_event(seq, event);
-		free(event);
+	EventNode *node = find_node(seq->head, time, channel, HM_EV_PATCH);
+	if (node) {
+		remove_node(seq, node);
+		free(node);
 	}
 
 	PASS()
