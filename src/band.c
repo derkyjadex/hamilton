@@ -8,7 +8,7 @@
 
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
-#include "mq.h"
+#include "albase/mq.h"
 
 #define TICKS_TO_SAMPLES(t) (t) * (band->sampleRate / HM_SEQ_TICK_RATE)
 #define SAMPLES_TO_TICKS(n) (n) * (HM_SEQ_TICK_RATE / band->sampleRate)
@@ -58,8 +58,8 @@ struct HmBand {
 
 	HmLib *lib;
 	HmSeq *seq;
-	HmMQ *toAudio;
-	HmMQ *fromAudio;
+	AlMQ *toAudio;
+	AlMQ *fromAudio;
 
 	HmBandState lastState;
 };
@@ -96,8 +96,8 @@ AlError hm_band_init(HmBand **result)
 
 	TRY(hm_lib_init(&band->lib));
 	TRY(hm_seq_init(&band->seq));
-	TRY(mq_init(&band->toAudio, sizeof(ToAudioMessage), 256));
-	TRY(mq_init(&band->fromAudio, sizeof(FromAudioMessage), 256));
+	TRY(al_mq_init(&band->toAudio, sizeof(ToAudioMessage), 256));
+	TRY(al_mq_init(&band->fromAudio, sizeof(FromAudioMessage), 256));
 
 	*result = band;
 
@@ -112,8 +112,8 @@ void hm_band_free(HmBand *band)
 	if (band) {
 		hm_lib_free(band->lib);
 		hm_seq_free(band->seq);
-		mq_free(band->toAudio);
-		mq_free(band->fromAudio);
+		al_mq_free(band->toAudio);
+		al_mq_free(band->fromAudio);
 		free(band);
 	}
 }
@@ -186,14 +186,14 @@ static void process_messages(HmBand *band)
 {
 	FromAudioMessage outMessage;
 	ToAudioMessage message;
-	while (mq_pop(band->toAudio, &message)) {
+	while (al_mq_pop(band->toAudio, &message)) {
 		switch (message.type) {
 			case PLAY:
 				band->playing = true;
 				outMessage = (FromAudioMessage){
 					.type = PLAYING,
 				};
-				mq_push(band->fromAudio, &outMessage);
+				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case PAUSE:
@@ -201,7 +201,7 @@ static void process_messages(HmBand *band)
 				outMessage = (FromAudioMessage){
 					.type = PAUSED
 				};
-				mq_push(band->fromAudio, &outMessage);
+				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case SEEK:
@@ -216,7 +216,7 @@ static void process_messages(HmBand *band)
 						.looping = message.data.looping
 					}
 				};
-				mq_push(band->fromAudio, &outMessage);
+				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case SET_LOOP:
@@ -231,7 +231,7 @@ static void process_messages(HmBand *band)
 						}
 					}
 				};
-				mq_push(band->fromAudio, &outMessage);
+				al_mq_push(band->fromAudio, &outMessage);
 				break;
 		}
 	}
@@ -356,7 +356,7 @@ void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples)
 			.position = SAMPLES_TO_TICKS(band->time)
 		}
 	};
-	mq_push(band->fromAudio, &message);
+	al_mq_push(band->fromAudio, &message);
 }
 
 AlError hm_band_play(HmBand *band)
@@ -367,7 +367,7 @@ AlError hm_band_play(HmBand *band)
 		.type = PLAY
 	};
 
-	if (!mq_push(band->toAudio, &message))
+	if (!al_mq_push(band->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	PASS()
@@ -381,7 +381,7 @@ AlError hm_band_pause(HmBand *band)
 		.type = PAUSE
 	};
 
-	if (!mq_push(band->toAudio, &message))
+	if (!al_mq_push(band->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	PASS()
@@ -398,7 +398,7 @@ AlError hm_band_seek(HmBand *band, uint32_t	position)
 		}
 	};
 
-	if (!mq_push(band->toAudio, &message))
+	if (!al_mq_push(band->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	PASS()
@@ -415,7 +415,7 @@ AlError hm_band_set_looping(HmBand *band, bool looping)
 		}
 	};
 
-	if (!mq_push(band->toAudio, &message))
+	if (!al_mq_push(band->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	PASS()
@@ -435,7 +435,7 @@ AlError hm_band_set_loop(HmBand *band, uint32_t start, uint32_t end)
 		}
 	};
 
-	if (!mq_push(band->toAudio, &message))
+	if (!al_mq_push(band->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	PASS()
@@ -446,7 +446,7 @@ void hm_band_get_state(HmBand *band, HmBandState *state)
 	HmBandState newState = band->lastState;
 
 	FromAudioMessage message;
-	while (mq_pop(band->fromAudio, &message)) {
+	while (al_mq_pop(band->fromAudio, &message)) {
 		switch (message.type) {
 			case PLAYING:
 				newState.playing = true;

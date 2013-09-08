@@ -9,7 +9,7 @@
 #include <math.h>
 
 #include "hamilton/seq.h"
-#include "mq.h"
+#include "albase/mq.h"
 
 typedef struct EventNode EventNode;
 
@@ -48,8 +48,8 @@ typedef struct {
 } FromAudioMessage;
 
 struct HmSeq {
-	HmMQ *toAudio;
-	HmMQ *fromAudio;
+	AlMQ *toAudio;
+	AlMQ *fromAudio;
 
 	EventNode *head, *tail;
 	int numEvents;
@@ -74,8 +74,8 @@ AlError hm_seq_init(HmSeq **result)
 	seq->array = NULL;
 	seq->arrayLength = 0;
 
-	TRY(mq_init(&seq->toAudio, sizeof(ToAudioMessage), 128));
-	TRY(mq_init(&seq->fromAudio, sizeof(FromAudioMessage), 128));
+	TRY(al_mq_init(&seq->toAudio, sizeof(ToAudioMessage), 128));
+	TRY(al_mq_init(&seq->fromAudio, sizeof(FromAudioMessage), 128));
 
 	*result = seq;
 
@@ -111,8 +111,8 @@ void hm_seq_free(HmSeq *seq)
 			free(freePtr);
 		}
 
-		mq_free(seq->toAudio);
-		mq_free(seq->fromAudio);
+		al_mq_free(seq->toAudio);
+		al_mq_free(seq->fromAudio);
 		free(seq->array);
 		free(seq);
 	}
@@ -217,13 +217,13 @@ static void free_from_audio(HmSeq *seq, void *ptr)
 		}
 	};
 
-	mq_push(seq->fromAudio, &message);
+	al_mq_push(seq->fromAudio, &message);
 }
 
 static void update_sequence(HmSeq *seq)
 {
 	ToAudioMessage message;
-	while (mq_pop(seq->toAudio, &message)) {
+	while (al_mq_pop(seq->toAudio, &message)) {
 		switch (message.type) {
 			case SWAP_ARRAY:
 				free_from_audio(seq, seq->array);
@@ -285,7 +285,7 @@ int hm_seq_get_events(HmSeq *seq, HmEvent *dest, int numEvents, uint64_t start, 
 void hm_seq_process_messages(HmSeq *seq)
 {
 	FromAudioMessage audioMessage;
-	while (mq_pop(seq->fromAudio, &audioMessage)) {
+	while (al_mq_pop(seq->fromAudio, &audioMessage)) {
 		switch (audioMessage.type) {
 			case FREE_PTR:
 				free(audioMessage.data.ptr);
@@ -661,7 +661,7 @@ AlError hm_seq_commit(HmSeq *seq)
 		}
 	};
 
-	if (!mq_push(seq->toAudio, &message))
+	if (!al_mq_push(seq->toAudio, &message))
 		THROW(AL_ERROR_MEMORY);
 
 	CATCH(

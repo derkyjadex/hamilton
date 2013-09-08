@@ -13,7 +13,6 @@
 		1A1A332417DCF355005BFA9B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A1A332317DCF355005BFA9B /* SDL2.framework */; };
 		1A7BEA9616FD1275008B3BCB /* band.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E716ED2F1900C40716 /* band.c */; };
 		1A7BEA9716FD1275008B3BCB /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E816ED2F1900C40716 /* lib.c */; };
-		1A7BEA9916FD1275008B3BCB /* mq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E916ED2F1900C40716 /* mq.c */; };
 		1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EB16ED2F1900C40716 /* sine.c */; };
 		1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63216F5D49700C40716 /* mda_dx10.c */; };
 		1A7BEAB416FD1BE2008B3BCB /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EC16ED2F1900C40716 /* main.c */; };
@@ -70,7 +69,6 @@
 		1A0F50EF176DD67D00D24C94 /* audio_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio_jack.c; sourceTree = "<group>"; };
 		1A0F50F7176DDFDD00D24C94 /* midi_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_jack.c; sourceTree = "<group>"; };
 		1A1A332317DCF355005BFA9B /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = /Library/Frameworks/SDL2.framework; sourceTree = "<absolute>"; };
-		1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
 		1A46BF6B178376E300D395C4 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A554C6D16FD0230007ACD72 /* Global.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Global.xcconfig; sourceTree = "<group>"; };
@@ -79,8 +77,6 @@
 		1A65C5E616ED2F1900C40716 /* audio_sdl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = audio_sdl.c; sourceTree = "<group>"; };
 		1A65C5E716ED2F1900C40716 /* band.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = band.c; sourceTree = "<group>"; };
 		1A65C5E816ED2F1900C40716 /* lib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lib.c; sourceTree = "<group>"; };
-		1A65C5E916ED2F1900C40716 /* mq.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mq.c; sourceTree = "<group>"; };
-		1A65C5EA16ED2F1900C40716 /* mq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mq.h; sourceTree = "<group>"; };
 		1A65C5EB16ED2F1900C40716 /* sine.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sine.c; sourceTree = "<group>"; };
 		1A65C5EC16ED2F1900C40716 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		1A65C60116ED2FB000C40716 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -190,9 +186,6 @@
 				1A65C63216F5D49700C40716 /* mda_dx10.c */,
 				1A0F50F7176DDFDD00D24C94 /* midi_jack.c */,
 				1A7BEABB16FD1EF9008B3BCB /* midi_pm.c */,
-				1A65C5E916ED2F1900C40716 /* mq.c */,
-				1A65C5EA16ED2F1900C40716 /* mq.h */,
-				1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */,
 				1A65C63416F63B8B00C40716 /* portmidi */,
 				1AC0D7721776059600290C88 /* seq.c */,
 				1AC0D795177716E900290C88 /* seq_cmds.c */,
@@ -397,7 +390,6 @@
 			files = (
 				1A7BEA9616FD1275008B3BCB /* band.c in Sources */,
 				1A7BEA9716FD1275008B3BCB /* lib.c in Sources */,
-				1A7BEA9916FD1275008B3BCB /* mq.c in Sources */,
 				1A7BEA9A16FD1275008B3BCB /* sine.c in Sources */,
 				1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */,
 				1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */,
