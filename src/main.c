@@ -4,7 +4,7 @@
  * See COPYING for details.
  */
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include "hamilton/band.h"
 #include "hamilton/lib.h"

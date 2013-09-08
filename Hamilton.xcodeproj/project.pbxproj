@@ -10,6 +10,7 @@
 		1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0F50ED176DD65800D24C94 /* Jackmp.framework */; };
 		1A0F50F0176DD67D00D24C94 /* audio_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50EF176DD67D00D24C94 /* audio_jack.c */; };
 		1A0F50F8176DDFDD00D24C94 /* midi_jack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A0F50F7176DDFDD00D24C94 /* midi_jack.c */; };
+		1A1A332417DCF355005BFA9B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A1A332317DCF355005BFA9B /* SDL2.framework */; };
 		1A7BEA9616FD1275008B3BCB /* band.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E716ED2F1900C40716 /* band.c */; };
 		1A7BEA9716FD1275008B3BCB /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E816ED2F1900C40716 /* lib.c */; };
 		1A7BEA9916FD1275008B3BCB /* mq.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5E916ED2F1900C40716 /* mq.c */; };
@@ -17,7 +18,6 @@
 		1A7BEA9B16FD1275008B3BCB /* mda_dx10.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C63216F5D49700C40716 /* mda_dx10.c */; };
 		1A7BEAB416FD1BE2008B3BCB /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A65C5EC16ED2F1900C40716 /* main.c */; };
 		1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A554C6916FD014E007ACD72 /* libhamilton.a */; };
-		1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C61C16ED2FE200C40716 /* SDL.framework */; };
 		1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64316F63E2E00C40716 /* CoreMIDI.framework */; };
 		1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C64516F63E3B00C40716 /* CoreAudio.framework */; };
 		1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A65C60116ED2FB000C40716 /* Cocoa.framework */; };
@@ -30,6 +30,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1A1A332117DCF334005BFA9B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1A1A330417DC835B005BFA9B;
+			remoteInfo = aldatashow;
+		};
 		1AC0D7791776227A00290C88 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AC0D7741776227900290C88 /* Alice.xcodeproj */;
@@ -62,6 +69,7 @@
 		1A0F50ED176DD65800D24C94 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = /System/Library/Frameworks/Jackmp.framework; sourceTree = "<absolute>"; };
 		1A0F50EF176DD67D00D24C94 /* audio_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio_jack.c; sourceTree = "<group>"; };
 		1A0F50F7176DDFDD00D24C94 /* midi_jack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = midi_jack.c; sourceTree = "<group>"; };
+		1A1A332317DCF355005BFA9B /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = /Library/Frameworks/SDL2.framework; sourceTree = "<absolute>"; };
 		1A3A94AC175B764D0050CF67 /* pa_memorybarrier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
 		1A46BF6B178376E300D395C4 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
 		1A554C6916FD014E007ACD72 /* libhamilton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhamilton.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,7 +87,6 @@
 		1A65C60416ED2FB000C40716 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		1A65C60516ED2FB000C40716 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		1A65C60616ED2FB000C40716 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		1A65C61C16ED2FE200C40716 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
 		1A65C62A16ED30E700C40716 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A65C62C16ED386000C40716 /* synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = synth.h; sourceTree = "<group>"; };
 		1A65C62D16ED38B600C40716 /* band.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = band.h; sourceTree = "<group>"; };
@@ -128,11 +135,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A1A332417DCF355005BFA9B /* SDL2.framework in Frameworks */,
 				1AD99C081788DB2600D3E5DA /* Lua.framework in Frameworks */,
 				1AD99C061788DB0500D3E5DA /* libalbase.a in Frameworks */,
 				1A0F50EE176DD65800D24C94 /* Jackmp.framework in Frameworks */,
 				1A7BEAB516FD1BF4008B3BCB /* libhamilton.a in Frameworks */,
-				1A7BEAB616FD1C25008B3BCB /* SDL.framework in Frameworks */,
 				1A7BEAB716FD1C2B008B3BCB /* CoreMIDI.framework in Frameworks */,
 				1A7BEAB816FD1C32008B3BCB /* CoreAudio.framework in Frameworks */,
 				1A7BEAB916FD1C39008B3BCB /* Cocoa.framework in Frameworks */,
@@ -224,7 +231,7 @@
 				1A0F50ED176DD65800D24C94 /* Jackmp.framework */,
 				1AD99C071788DB2600D3E5DA /* Lua.framework */,
 				1A65C60316ED2FB000C40716 /* Other Frameworks */,
-				1A65C61C16ED2FE200C40716 /* SDL.framework */,
+				1A1A332317DCF355005BFA9B /* SDL2.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -275,6 +282,7 @@
 			children = (
 				1AC0D77A1776227A00290C88 /* libalbase.a */,
 				1AC0D77C1776227A00290C88 /* libalice.a */,
+				1A1A332217DCF334005BFA9B /* aldatashow */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -359,6 +367,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		1A1A332217DCF334005BFA9B /* aldatashow */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = aldatashow;
+			remoteRef = 1A1A332117DCF334005BFA9B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		1AC0D77A1776227A00290C88 /* libalbase.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
