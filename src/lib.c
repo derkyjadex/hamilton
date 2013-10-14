@@ -21,7 +21,7 @@ AlError hm_lib_init(HmLib **result)
 	BEGIN()
 
 	HmLib *lib = NULL;
-	TRY(al_malloc(&lib, sizeof(HmLib), 1));
+	TRY(al_malloc(&lib, sizeof(HmLib)));
 
 	lib->numTypes = 0;
 

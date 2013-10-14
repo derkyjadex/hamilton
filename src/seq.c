@@ -62,7 +62,7 @@ AlError hm_seq_init(HmSeq **result)
 	BEGIN()
 
 	HmSeq *seq = NULL;
-	TRY(al_malloc(&seq, sizeof(HmSeq), 1));
+	TRY(al_malloc(&seq, sizeof(HmSeq)));
 
 	seq->toAudio = NULL;
 	seq->fromAudio = NULL;
@@ -300,7 +300,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 
 	HmSeqItem *items = NULL;
 	int numItems = 0;
-	TRY(al_malloc(&items, sizeof(HmSeqItem), seq->numEvents));
+	TRY(al_malloc(&items, sizeof(HmSeqItem) * seq->numEvents));
 
 	HmSeqItem *item = items;
 	for (EventNode *node = seq->head; node; node = node->next, item++) {
@@ -388,7 +388,7 @@ AlError hm_seq_add_note(HmSeq *seq, int channel, uint32_t time, HmNoteData *data
 	BEGIN()
 
 	HmNote *note = NULL;
-	TRY(al_malloc(&note, sizeof(HmNote), 1));
+	TRY(al_malloc(&note, sizeof(HmNote)));
 
 	note->data = *data;
 	note->on = (EventNode){
@@ -475,7 +475,7 @@ AlError hm_seq_set_pitch(HmSeq *seq, int channel, uint32_t time, float pitch)
 		node->event.data.pitch = pitch;
 
 	} else {
-		TRY(al_malloc(&node, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode)));
 
 		node->prev = NULL;
 		node->next = NULL;
@@ -517,7 +517,7 @@ AlError hm_seq_set_control(HmSeq *seq, int channel, uint32_t time, int control, 
 		node->event.data.control.value = value;
 
 	} else {
-		TRY(al_malloc(&node, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode)));
 
 		node->prev = NULL;
 		node->next = NULL;
@@ -562,7 +562,7 @@ AlError hm_seq_set_param(HmSeq *seq, int channel, uint32_t time, int param, floa
 		node->event.data.param.value = value;
 
 	} else {
-		TRY(al_malloc(&node, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode)));
 
 		node->prev = NULL;
 		node->next = NULL;
@@ -607,7 +607,7 @@ AlError hm_seq_set_patch(HmSeq *seq, int channel, uint32_t time, int patch)
 		node->event.data.patch = patch;
 
 	} else {
-		TRY(al_malloc(&node, sizeof(EventNode), 1));
+		TRY(al_malloc(&node, sizeof(EventNode)));
 
 		node->prev = NULL;
 		node->next = NULL;
@@ -644,7 +644,7 @@ AlError hm_seq_commit(HmSeq *seq)
 	BEGIN()
 
 	HmEvent *array = NULL;
-	TRY(al_malloc(&array, sizeof(HmEvent), seq->numEvents));
+	TRY(al_malloc(&array, sizeof(HmEvent) * seq->numEvents));
 
 	HmEvent *event = array;
 	for (EventNode *node = seq->head; node; node = node->next, event++) {

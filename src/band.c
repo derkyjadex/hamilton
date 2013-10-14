@@ -69,7 +69,7 @@ AlError hm_band_init(HmBand **result)
 	BEGIN()
 
 	HmBand *band = NULL;
-	TRY(al_malloc(&band, sizeof(HmBand), 1));
+	TRY(al_malloc(&band, sizeof(HmBand)));
 
 	for (int i = 0; i < NUM_CHANNELS; i++) {
 		band->synths[i] = NULL;
