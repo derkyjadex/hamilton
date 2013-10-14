@@ -430,6 +430,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1A554C7416FD0F4F007ACD72 /* Debug.xcconfig */;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 			};
 			name = Debug;
 		};
@@ -437,6 +438,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1A554C7516FD0F83007ACD72 /* Release.xcconfig */;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 			};
 			name = Release;
 		};
