@@ -329,7 +329,7 @@
 		1A65C5DC16ED2E8D00C40716 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0500;
 			};
 			buildConfigurationList = 1A65C5DF16ED2E8D00C40716 /* Build configuration list for PBXProject "Hamilton" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -427,6 +427,7 @@
 			baseConfigurationReference = 1A554C7416FD0F4F007ACD72 /* Debug.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Debug;
 		};
