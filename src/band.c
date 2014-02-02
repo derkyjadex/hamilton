@@ -9,6 +9,7 @@
 #include "hamilton/band.h"
 #include "hamilton/lib.h"
 #include "albase/mq.h"
+#include "albase/triple_buffer.h"
 
 #define TICKS_TO_SAMPLES(t) (t) * (band->sampleRate / HM_SEQ_TICK_RATE)
 #define SAMPLES_TO_TICKS(n) (n) * (HM_SEQ_TICK_RATE / band->sampleRate)
@@ -30,23 +31,6 @@ typedef struct {
 	} data;
 } ToAudioMessage;
 
-typedef struct {
-	enum {
-		PLAYING,
-		PAUSED,
-		POSITION,
-		LOOPING_SET,
-		LOOP_SET
-	} type;
-	union {
-		uint32_t position;
-		bool looping;
-		struct {
-			uint32_t start, end;
-		} loop;
-	} data;
-} FromAudioMessage;
-
 struct HmBand {
 	HmSynth *synths[NUM_CHANNELS];
 	double sampleRate;
@@ -59,9 +43,7 @@ struct HmBand {
 	HmLib *lib;
 	HmSeq *seq;
 	AlMQ *toAudio;
-	AlMQ *fromAudio;
-
-	HmBandState lastState;
+	AlTripleBuffer *state;
 };
 
 AlError hm_band_init(HmBand **result)
@@ -84,9 +66,9 @@ AlError hm_band_init(HmBand **result)
 	band->lib = NULL;
 	band->seq = NULL;
 	band->toAudio = NULL;
-	band->fromAudio = NULL;
+	band->state = NULL;
 
-	band->lastState = (HmBandState){
+	HmBandState initialState = {
 		.playing = false,
 		.position = 0,
 		.looping = false,
@@ -97,7 +79,7 @@ AlError hm_band_init(HmBand **result)
 	TRY(hm_lib_init(&band->lib));
 	TRY(hm_seq_init(&band->seq));
 	TRY(al_mq_init(&band->toAudio, sizeof(ToAudioMessage), 256));
-	TRY(al_mq_init(&band->fromAudio, sizeof(FromAudioMessage), 256));
+	TRY(al_triple_buffer_init(&band->state, sizeof(HmBandState), &initialState));
 
 	*result = band;
 
@@ -113,7 +95,7 @@ void hm_band_free(HmBand *band)
 		hm_lib_free(band->lib);
 		hm_seq_free(band->seq);
 		al_mq_free(band->toAudio);
-		al_mq_free(band->fromAudio);
+		al_triple_buffer_free(band->state);
 		free(band);
 	}
 }
@@ -184,24 +166,15 @@ float hm_band_get_channel_param(HmBand *band, int channel, int param)
 
 static void process_messages(HmBand *band)
 {
-	FromAudioMessage outMessage;
 	ToAudioMessage message;
 	while (al_mq_pop(band->toAudio, &message)) {
 		switch (message.type) {
 			case PLAY:
 				band->playing = true;
-				outMessage = (FromAudioMessage){
-					.type = PLAYING,
-				};
-				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case PAUSE:
 				band->playing = false;
-				outMessage = (FromAudioMessage){
-					.type = PAUSED
-				};
-				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case SEEK:
@@ -210,28 +183,11 @@ static void process_messages(HmBand *band)
 
 			case SET_LOOPING:
 				band->looping = message.data.looping;
-				outMessage = (FromAudioMessage){
-					.type = LOOPING_SET,
-					.data = {
-						.looping = message.data.looping
-					}
-				};
-				al_mq_push(band->fromAudio, &outMessage);
 				break;
 
 			case SET_LOOP:
 				band->loopStart = TICKS_TO_SAMPLES(message.data.loop.start);
 				band->loopEnd = TICKS_TO_SAMPLES(message.data.loop.end);
-				outMessage = (FromAudioMessage){
-					.type = LOOP_SET,
-					.data = {
-						.loop = {
-							.start = message.data.loop.start,
-							.end = message.data.loop.end
-						}
-					}
-				};
-				al_mq_push(band->fromAudio, &outMessage);
 				break;
 		}
 	}
@@ -350,13 +306,15 @@ void hm_band_run(HmBand *band, float *buffer, uint64_t numSamples)
 		}
 	}
 
-	FromAudioMessage message = {
-		.type = POSITION,
-		.data = {
-			.position = SAMPLES_TO_TICKS(band->time)
-		}
+	HmBandState *state = al_triple_buffer_write(band->state);
+	*state = (HmBandState){
+		.playing = band->playing,
+		.position = SAMPLES_TO_TICKS(band->time),
+		.looping = band->looping,
+		.loopStart = SAMPLES_TO_TICKS(band->loopStart),
+		.loopEnd = SAMPLES_TO_TICKS(band->loopEnd)
 	};
-	al_mq_push(band->fromAudio, &message);
+	al_triple_buffer_flip(band->state);
 }
 
 AlError hm_band_play(HmBand *band)
@@ -443,36 +401,8 @@ AlError hm_band_set_loop(HmBand *band, uint32_t start, uint32_t end)
 
 void hm_band_get_state(HmBand *band, HmBandState *state)
 {
-	HmBandState newState = band->lastState;
-
-	FromAudioMessage message;
-	while (al_mq_pop(band->fromAudio, &message)) {
-		switch (message.type) {
-			case PLAYING:
-				newState.playing = true;
-				break;
-
-			case PAUSED:
-				newState.playing = false;
-				break;
-
-			case POSITION:
-				newState.position = message.data.position;
-				break;
-
-			case LOOPING_SET:
-				newState.looping = message.data.looping;
-				break;
-
-			case LOOP_SET:
-				newState.loopStart = message.data.loop.start;
-				newState.loopEnd = message.data.loop.end;
-				break;
-		}
-	}
-
-	band->lastState = newState;
-	*state = newState;
+	const HmBandState *lastState = al_triple_buffer_read(band->state);
+	*state = *lastState;
 }
 
 bool hm_band_send_note(HmBand *band, int channel, bool state, int num, float velocity)
