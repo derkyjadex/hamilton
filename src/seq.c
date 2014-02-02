@@ -317,6 +317,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 						}
 					}
 				};
+				numItems++;
 				break;
 
 			case HM_EV_NOTE_OFF:
@@ -331,6 +332,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 						.pitch = node->event.data.pitch
 					}
 				};
+				numItems++;
 				break;
 
 			case HM_EV_CONTROL:
@@ -345,6 +347,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 						}
 					}
 				};
+				numItems++;
 				break;
 
 			case HM_EV_PARAM:
@@ -359,6 +362,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 						}
 					}
 				};
+				numItems++;
 				break;
 
 			case HM_EV_PATCH:
@@ -370,6 +374,7 @@ AlError hm_seq_get_items(HmSeq *seq, HmSeqItem **result, int *resultLength)
 						.patch = node->event.data.patch
 					}
 				};
+				numItems++;
 				break;
 		}
 	}
