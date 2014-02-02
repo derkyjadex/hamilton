@@ -141,11 +141,11 @@ int cmd_get_band_state(lua_State *L)
 	lua_pushboolean(L, state.looping);
 	lua_settable(L, -3);
 
-	lua_pushliteral(L, "loopStart");
+	lua_pushliteral(L, "loop_start");
 	lua_pushnumber(L, state.loopStart);
 	lua_settable(L, -3);
 
-	lua_pushliteral(L, "loopEnd");
+	lua_pushliteral(L, "loop_end");
 	lua_pushnumber(L, state.loopEnd);
 	lua_settable(L, -3);
 
