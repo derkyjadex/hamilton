@@ -74,7 +74,7 @@ int cmd_seek(lua_State *L)
 
 	TRY(hm_band_seek(band, position));
 
-	CATCH_LUA(, "error pausing band")
+	CATCH_LUA(, "error seeking")
 	FINALLY_LUA(, 0)
 }
 
@@ -104,7 +104,7 @@ int cmd_set_loop(lua_State *L)
 
 	TRY(hm_band_set_loop(band, start, end));
 
-	CATCH_LUA(, "error pausing band")
+	CATCH_LUA(, "error setting loop")
 	FINALLY_LUA(, 0)
 }
 
